@@ -1,14 +1,13 @@
 package main
 
 import (
+	"api-rate-limiter/internal/server"
 	"context"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"api-rate-limiter/internal/server"
 )
 
 func main() {
