@@ -1,13 +1,14 @@
 package main
 
 import (
-	"api-rate-limiter/internal/server"
 	"context"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"api-rate-limiter/internal/server"
 )
 
 func main() {
@@ -33,7 +34,7 @@ func main() {
 	logg.Info("Starting GRPC server...")
 
 	go func() {
-		<-ctx.Done() // todo: not work?
+		<-ctx.Done()
 
 		logg.Info("Stopping GRPC server...")
 		if err := srv.Stop(ctx); err != nil {
@@ -43,8 +44,7 @@ func main() {
 		logg.Info("Server stopped.")
 	}()
 
-	err := srv.Start(ctx)
-	if err != nil {
+	if err := srv.Start(ctx); err != nil {
 		logg.Error("Failed to start GRPC server: " + err.Error())
 		cancel()
 	}
