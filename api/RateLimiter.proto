@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package RateLimiter;
+
+option go_package = "github.com/petrenko-alex/api-rate-limiter/proto";
+
+service RateLimiter {
+  rpc WhiteListAdd(WhiteListAddRequest) returns (WhiteListAddResponse) {};
+  rpc WhiteListDelete(WhiteListDeleteRequest) returns (WhiteListDeleteResponse) {};
+
+  rpc BlackListAdd(BlackListAddRequest) returns (BlackListAddResponse) {};
+  rpc BlackListDelete(BlackListDeleteRequest) returns (BlackListDeleteResponse) {};
+
+  rpc BucketReset(BucketResetRequest) returns (BucketResetResponse) {};
+
+  rpc LimitCheck(LimitCheckRequest) returns (LimitCheckResponse) {};
+}
+
+message WhiteListAddRequest { IPNet ip_net = 1; }
+message WhiteListDeleteRequest { IPNet ip_net = 1; }
+message BlackListAddRequest { IPNet ip_net = 1; }
+message BlackListDeleteRequest { IPNet ip_net = 1; }
+
+message BucketResetRequest {
+  string login = 1;
+  string ip = 2;
+}
+
+message LimitCheckRequest {
+  string login = 1;
+  string password = 2;
+  string ip = 3;
+}
+
+message WhiteListAddResponse {}
+message WhiteListDeleteResponse {}
+message BlackListAddResponse {}
+message BlackListDeleteResponse {}
+
+message BucketResetResponse {}
+
+message LimitCheckResponse { bool allowed = 1; }
+
+message IPNet {
+  string ip = 1;
+  string mask = 2;
+}
