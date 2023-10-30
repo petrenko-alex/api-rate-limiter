@@ -1,0 +1,4 @@
+*.go    eol=lf
+*.yml   eol=lf
+*.proto eol=lf
+*.md    eol=lf
