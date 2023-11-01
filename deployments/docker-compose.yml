@@ -1,0 +1,22 @@
+version: "3"
+services:
+  db:
+    image: postgres:16.0-alpine3.18
+    restart: always
+    environment:
+      POSTGRES_DB: "rate_limiter"
+      POSTGRES_USER: "main"
+      POSTGRES_PASSWORD: "main"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - api-rate-limiter-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  db-admin:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  api-rate-limiter-data:
