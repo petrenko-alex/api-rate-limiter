@@ -12,10 +12,9 @@ func init() {
 }
 
 func upAddIpNetRuleTable(ctx context.Context, tx *sql.Tx) error {
-	query := `CREATE TABLE ip_net_rule(
-    id int not null primary key,
-    ip varchar(45) not null,
-    net int not null,
+	query := `create table ip_net_rule(
+    id bigint generated always as identity primary key,
+    ip varchar(50) not null,
     type varchar(255) not null
 );`
 
@@ -27,7 +26,7 @@ func upAddIpNetRuleTable(ctx context.Context, tx *sql.Tx) error {
 }
 
 func downAddIpNetRuleTable(ctx context.Context, tx *sql.Tx) error {
-	query := `DROP TABLE IF EXISTS ip_net_rule`
+	query := `drop table if exists ip_net_rule`
 
 	if _, err := tx.ExecContext(ctx, query); err != nil {
 		return err
