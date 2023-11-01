@@ -26,3 +26,9 @@ ehthumbs.db
 Thumbs.db
 .vscode/
 *.bak
+
+
+### Project Specific
+logs/
+bin/
+configs/*.yml
