@@ -74,7 +74,7 @@ func (s *RuleStorage) GetForIP(ip string) (*Rules, error) {
 }
 
 func (s *RuleStorage) GetForType(ruleType RuleType) (*Rules, error) {
-	rules := Rules{}
+	rules := make(Rules, 0)
 
 	rows, err := s.db.QueryContext(
 		s.ctx,
