@@ -8,10 +8,10 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upAddIpNetRuleTable, downAddIpNetRuleTable)
+	goose.AddMigrationContext(upAddIPNetRuleTable, downAddIPNetRuleTable)
 }
 
-func upAddIpNetRuleTable(ctx context.Context, tx *sql.Tx) error {
+func upAddIPNetRuleTable(ctx context.Context, tx *sql.Tx) error {
 	query := `create table ip_net_rule(
     id bigint generated always as identity primary key,
     ip varchar(50) not null,
@@ -25,7 +25,7 @@ func upAddIpNetRuleTable(ctx context.Context, tx *sql.Tx) error {
 	return nil
 }
 
-func downAddIpNetRuleTable(ctx context.Context, tx *sql.Tx) error {
+func downAddIPNetRuleTable(ctx context.Context, tx *sql.Tx) error {
 	query := `drop table if exists ip_net_rule`
 
 	if _, err := tx.ExecContext(ctx, query); err != nil {

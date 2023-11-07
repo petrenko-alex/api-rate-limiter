@@ -47,8 +47,7 @@ func (s *LimitStorage) Connect(ctx context.Context) error {
 		return fmt.Errorf(ErrConnectFailed.Error()+":%w", openErr)
 	}
 
-	pingErr := db.PingContext(ctx)
-	if pingErr != nil {
+	if pingErr := db.PingContext(ctx); pingErr != nil {
 		return fmt.Errorf(ErrConnectFailed.Error()+":%w", pingErr)
 	}
 
@@ -59,8 +58,7 @@ func (s *LimitStorage) Connect(ctx context.Context) error {
 }
 
 func (s *LimitStorage) Close(_ context.Context) error {
-	closeErr := s.db.Close()
-	if closeErr != nil {
+	if closeErr := s.db.Close(); closeErr != nil {
 		return closeErr
 	}
 

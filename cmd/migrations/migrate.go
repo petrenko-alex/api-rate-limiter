@@ -30,7 +30,7 @@ func run() int {
 		flag.Usage()
 		return 0
 	}
-	command := args[1]
+	command := args[1] //nolint:ifshort
 
 	configFile, fileErr := os.Open(configFilePath)
 	if fileErr != nil {
