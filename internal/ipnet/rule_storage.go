@@ -10,15 +10,15 @@ import (
 
 var ErrConnectFailed = errors.New("error connecting to db")
 
-const DSN = "postgresql://main:main@localhost:5432/rate_limiter?sslmode=disable"
-
 type RuleStorage struct {
 	db  *sql.DB
 	ctx context.Context
+
+	dsn string
 }
 
-func NewRuleStorage() *RuleStorage {
-	return &RuleStorage{}
+func NewRuleStorage(dsn string) *RuleStorage {
+	return &RuleStorage{dsn: dsn}
 }
 
 func (s *RuleStorage) Create(rule Rule) (int, error) {
@@ -101,7 +101,7 @@ func (s *RuleStorage) GetForType(ruleType RuleType) (*Rules, error) {
 }
 
 func (s *RuleStorage) Connect(ctx context.Context) error {
-	db, openErr := sql.Open("postgres", DSN)
+	db, openErr := sql.Open("postgres", s.dsn)
 	if openErr != nil {
 		return fmt.Errorf(ErrConnectFailed.Error()+":%w", openErr)
 	}

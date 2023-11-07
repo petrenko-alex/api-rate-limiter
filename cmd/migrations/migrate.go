@@ -1,6 +1,8 @@
 package main
 
 import (
+	"api-rate-limiter/internal/config"
+	"context"
 	"flag"
 	"log"
 	"os"
@@ -10,22 +12,41 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-const DSN = "postgresql://main:main@localhost:5432/rate_limiter?sslmode=disable" // todo: to config
-const MigrationsDir = "./migrations/"
+var configFilePath string
+
+func init() {
+	flag.StringVar(&configFilePath, "config", "configs/config.yml", "Path to configuration file")
+}
 
 func main() {
 	os.Exit(run())
 }
 
 func run() int {
+	flag.Parse()
+
 	args := os.Args[1:]
-	if len(args) < 1 {
+	if len(args) < 2 {
 		flag.Usage()
 		return 0
 	}
-	command := args[0]
+	command := args[1]
 
-	db, err := goose.OpenDBWithDriver("postgres", DSN)
+	configFile, fileErr := os.Open(configFilePath)
+	if fileErr != nil {
+		log.Println("Error opening config file: ", fileErr)
+
+		return 1
+	}
+
+	cfg, configErr := config.New(context.Background(), configFile)
+	if configErr != nil {
+		log.Println("Error parsing config file: ", configErr)
+
+		return 1
+	}
+
+	db, err := goose.OpenDBWithDriver("postgres", cfg.DB.DSN)
 	if err != nil {
 		log.Printf("goose: failed to open DB: %v\n\n", err)
 
@@ -39,11 +60,11 @@ func run() int {
 	}()
 
 	var arguments []string
-	if len(args) > 2 {
-		arguments = append(arguments, args[2:]...)
+	if len(args) > 3 {
+		arguments = append(arguments, args[3:]...)
 	}
 
-	if err := goose.Run(command, db, MigrationsDir, arguments...); err != nil {
+	if err := goose.Run(command, db, cfg.DB.MigrationsDir, arguments...); err != nil {
 		log.Printf("goose %v: %v\n", command, err)
 
 		return 1

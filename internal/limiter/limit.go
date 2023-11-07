@@ -11,7 +11,7 @@ const (
 type Limits []Limit
 
 type Limit struct {
-	limitType   LimitType
-	value       string
-	description string
+	LimitType   LimitType
+	Value       string
+	Description string
 }

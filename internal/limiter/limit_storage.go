@@ -9,15 +9,15 @@ import (
 
 var ErrConnectFailed = errors.New("error connecting to db")
 
-const DSN = "postgresql://main:main@localhost:5432/rate_limiter?sslmode=disable"
-
 type LimitStorage struct {
 	db  *sql.DB
 	ctx context.Context
+
+	dsn string
 }
 
-func NewLimitStorage() *LimitStorage {
-	return &LimitStorage{}
+func NewLimitStorage(dsn string) *LimitStorage {
+	return &LimitStorage{dsn: dsn}
 }
 
 func (s *LimitStorage) GetLimits() (*Limits, error) {
@@ -42,7 +42,7 @@ func (s *LimitStorage) GetLimits() (*Limits, error) {
 }
 
 func (s *LimitStorage) Connect(ctx context.Context) error {
-	db, openErr := sql.Open("postgres", DSN)
+	db, openErr := sql.Open("postgres", s.dsn)
 	if openErr != nil {
 		return fmt.Errorf(ErrConnectFailed.Error()+":%w", openErr)
 	}
@@ -73,13 +73,13 @@ func (s *LimitStorage) scanRow(rows *sql.Rows) (*Limit, error) {
 	limit := Limit{}
 	nullableDescription := sql.NullString{}
 
-	err := rows.Scan(&limit.limitType, &limit.value, &nullableDescription)
+	err := rows.Scan(&limit.LimitType, &limit.Value, &nullableDescription)
 	if err != nil {
 		return nil, err
 	}
 
 	if nullableDescription.Valid {
-		limit.description = nullableDescription.String
+		limit.Description = nullableDescription.String
 	}
 
 	return &limit, nil
