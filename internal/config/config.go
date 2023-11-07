@@ -12,6 +12,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type configCtxKey struct{}
+
 var ErrLimitsNotFound = errors.New("no rate limits found")
 
 type Config struct {
@@ -37,7 +39,7 @@ type Config struct {
 }
 
 func (c Config) WithContext(parentCtx context.Context) context.Context {
-	return context.WithValue(parentCtx, "config", c)
+	return context.WithValue(parentCtx, configCtxKey{}, c)
 }
 
 func New(ctx context.Context, configFile io.Reader) (*Config, error) {

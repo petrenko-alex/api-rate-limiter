@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	_ "github.com/lib/pq" // driver import
 )
 
@@ -28,7 +29,6 @@ func (s *RuleStorage) Create(rule Rule) (int, error) {
 		rule.IP,
 		rule.RuleType,
 	).Scan(&rule.ID)
-
 	if err != nil {
 		return 0, err
 	}
@@ -53,7 +53,6 @@ func (s *RuleStorage) GetForIP(ip string) (*Rules, error) {
 		"SELECT id, ip, type FROM ip_net_rule WHERE ip=$1;",
 		ip,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +84,6 @@ func (s *RuleStorage) GetForType(ruleType RuleType) (*Rules, error) {
 		"SELECT id, ip, type FROM ip_net_rule WHERE type=$1;",
 		ruleType,
 	)
-
 	if err != nil {
 		return nil, err
 	}

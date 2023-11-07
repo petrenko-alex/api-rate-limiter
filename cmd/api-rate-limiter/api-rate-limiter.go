@@ -1,8 +1,6 @@
 package main
 
 import (
-	"api-rate-limiter/internal/config"
-	"api-rate-limiter/internal/server"
 	"context"
 	"flag"
 	"log"
@@ -10,6 +8,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"api-rate-limiter/internal/config"
+	"api-rate-limiter/internal/server"
 )
 
 var configFilePath string
