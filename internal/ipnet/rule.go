@@ -1,10 +1,10 @@
 package ipnet
 
-type RuleType uint8
+type RuleType string
 
 const (
-	BlackList RuleType = iota
-	WhiteList
+	BlackList RuleType = "black"
+	WhiteList RuleType = "white"
 )
 
 type Rules []Rule
