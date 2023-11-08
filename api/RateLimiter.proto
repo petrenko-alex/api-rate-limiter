@@ -16,10 +16,10 @@ service RateLimiter {
   rpc LimitCheck(LimitCheckRequest) returns (LimitCheckResponse) {};
 }
 
-message WhiteListAddRequest { IPNet ip_net = 1; }
-message WhiteListDeleteRequest { IPNet ip_net = 1; }
-message BlackListAddRequest { IPNet ip_net = 1; }
-message BlackListDeleteRequest { IPNet ip_net = 1; }
+message WhiteListAddRequest { string ip_net = 1; }
+message WhiteListDeleteRequest { string ip_net = 1; }
+message BlackListAddRequest { string ip_net = 1; }
+message BlackListDeleteRequest { string ip_net = 1; }
 
 message BucketResetRequest {
   string login = 1;
@@ -40,8 +40,3 @@ message BlackListDeleteResponse {}
 message BucketResetResponse {}
 
 message LimitCheckResponse { bool allowed = 1; }
-
-message IPNet {
-  string ip = 1;
-  string mask = 2;
-}
