@@ -1,0 +1,9 @@
+server:
+  host: "localhost"
+  port: 4242
+  connectTimeout: 1s
+db:
+  dsn: "<paste your dsn>"
+  migrationsDir: "./migrations/"
+logger:
+  level: "info" # debug, info, warn, error
