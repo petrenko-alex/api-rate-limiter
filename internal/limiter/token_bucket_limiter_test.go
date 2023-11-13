@@ -9,12 +9,13 @@ import (
 )
 
 func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
-	identity := limiter.UserIdentityDto{"ip": "192.168.1.1"}
+	bucketKey := "ip"
+	identity := limiter.UserIdentityDto{bucketKey: "192.168.1.1"}
 
 	t.Run("limit reached", func(t *testing.T) {
 		bucketSize := 3
 		refillRate := limiter.NewRefillRate(3, time.Second*1)
-		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", bucketSize, refillRate)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
 
 		// 3 requests allowed
 		for i := 0; i < bucketSize; i++ {
@@ -35,7 +36,7 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 	t.Run("simple refill", func(t *testing.T) {
 		bucketSize := 3
 		refillRate := limiter.NewRefillRate(3, time.Second*1)
-		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", bucketSize, refillRate)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
 
 		// 3 requests allowed
 		for i := 0; i < bucketSize; i++ {
@@ -67,7 +68,7 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 	t.Run("partial refill", func(t *testing.T) {
 		bucketSize := 3
 		refillRate := limiter.NewRefillRate(10, time.Second*1)
-		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", bucketSize, refillRate)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
 
 		// 3 requests allowed
 		for i := 0; i < bucketSize; i++ {
@@ -98,7 +99,7 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 
 	t.Run("dynamic request cost", func(t *testing.T) {
 		refillRate := limiter.NewRefillRate(10, time.Second*1)
-		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", 10, refillRate)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, 10, refillRate)
 
 		// request with cost of 6 tokens after some time
 		time.Sleep(time.Millisecond * 300)
@@ -128,7 +129,7 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 	t.Run("tricky refill rate #1", func(t *testing.T) {
 		bucketSize := 3
 		refillRate := limiter.NewRefillRate(3, time.Second*3) // same as 1t/1sec
-		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", bucketSize, refillRate)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
 
 		tokenBucketLimiter.SetRequestCost(3)
 		tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
@@ -142,7 +143,7 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 	t.Run("tricky refill rate #2", func(t *testing.T) {
 		bucketSize := 3
 		refillRate := limiter.NewRefillRate(125, time.Second*150) // 125t/2.5min = same as 0.8(3)t/1sec
-		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", bucketSize, refillRate)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
 
 		tokenBucketLimiter.SetRequestCost(3)
 		tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
@@ -154,5 +155,40 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 
 		time.Sleep(time.Second * 1)
 		require.Equal(t, 1, tokenBucketLimiter.GetRequestsAllowed())
+	})
+
+	t.Run("multiple identity", func(t *testing.T) {
+		bucketSize := 3
+		refillRate := limiter.NewRefillRate(3, time.Second*1)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+
+		// waste all tokens for first ip
+		identity1 := limiter.UserIdentityDto{bucketKey: "192.168.1.1"}
+		tokenBucketLimiter.SetRequestCost(3)
+		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity1)
+		require.True(t, satisfies)
+		require.NoError(t, err)
+
+		// check no more allowed for first ip
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity1)
+		require.False(t, satisfies)
+		require.NoError(t, err)
+
+		// check allowed for another ip
+		identity2 := limiter.UserIdentityDto{bucketKey: "192.155.10.32"}
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity2)
+		require.True(t, satisfies)
+		require.NoError(t, err)
+
+		// wait to refill, try one more
+		time.Sleep(time.Second * 1)
+
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity1)
+		require.True(t, satisfies)
+		require.NoError(t, err)
+
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity2)
+		require.True(t, satisfies)
+		require.NoError(t, err)
 	})
 }
