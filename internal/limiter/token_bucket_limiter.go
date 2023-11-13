@@ -4,18 +4,28 @@ import "errors"
 
 const DefaultRequestCost = 1
 
+// ErrIncorrectIdentity Ошибка на случай некорректного входного аргумента identity
 var ErrIncorrectIdentity = errors.New("not found bucket key in user identity")
 
-// todo: doc and review
-
-// TokenBucketLimiter лимитер с использованием алгоритма TokenBucket.
+// TokenBucketLimiter позволяет задать rate limit для запросов с использованием алгоритма TokenBucket.
+//
+// Для идентификации клиента запроса используется обобщенный объект UserIdentityDto.
+// Ключ bucketKey используется для поиска идентификатора клиента в UserIdentityDto.
+//
+// Позволяет проверять возможность выполнения очередного запроса и получать количество доступных.
 type TokenBucketLimiter struct {
-	buckets          map[string]*TokenBucket
-	bucketSize       int
+	buckets    map[string]*TokenBucket
+	bucketSize int
+
+	// Скорость пополнения токенов корзины.
 	bucketRefillRate RefillRate
 
+	// Количество токенов, которое тратится на один запрос при вызове SatisfyLimit.
+	// По умолчанию - 1.
 	requestCost int
-	bucketKey   string
+
+	// Ключ корзины. По данному ключу происходит поиск идентификационных данных методом SatisfyLimit.
+	bucketKey string
 }
 
 func NewTokenBucketLimiter(bucketKey string, bucketSize int, refillRate RefillRate) TokenBucketLimiter {
@@ -29,6 +39,9 @@ func NewTokenBucketLimiter(bucketKey string, bucketSize int, refillRate RefillRa
 	}
 }
 
+// SatisfyLimit проверяет возможность выполнения запроса для identity c учетом текущей стоимости запроса.
+// Происходит забор токенов из корзины для identity c учетом текущей стоимости запроса.
+// Выполняется пополнение корзины для identity с учетом заданной скорости пополнения.
 func (l *TokenBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error) {
 	identityValue, found := identity[l.bucketKey]
 	if !found {
@@ -52,6 +65,7 @@ func (l *TokenBucketLimiter) SetRequestCost(requestCost int) {
 	l.requestCost = requestCost
 }
 
+// GetRequestsAllowed возвращает количество возможных запросов для identity с учетом текущей стоимости запроса.
 func (l *TokenBucketLimiter) GetRequestsAllowed(identity UserIdentityDto) (int, error) {
 	identityValue, found := identity[l.bucketKey]
 	if !found {
