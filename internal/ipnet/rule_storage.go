@@ -106,6 +106,38 @@ func (s *RuleStorage) GetForType(ruleType RuleType) (*Rules, error) {
 	return &rules, nil
 }
 
+func (s *RuleStorage) Find(ip string, ruleType RuleType) (*Rules, error) {
+	rules := make(Rules, 0)
+
+	rows, err := s.db.QueryContext(
+		s.ctx,
+		"SELECT id, ip, type FROM ip_net_rule WHERE ip=$1 AND type=$2;",
+		ip,
+		ruleType,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		rule := Rule{}
+
+		scanErr := rows.Scan(&rule.ID, &rule.IP, &rule.RuleType)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+
+		rules = append(rules, rule)
+	}
+
+	if rowsErr := rows.Err(); rowsErr != nil {
+		return nil, rowsErr
+	}
+
+	return &rules, nil
+}
+
 func (s *RuleStorage) Connect(ctx context.Context) error {
 	db, openErr := sql.Open("postgres", s.dsn)
 	if openErr != nil {

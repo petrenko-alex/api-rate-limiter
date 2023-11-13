@@ -64,7 +64,7 @@ func (h *Interceptor) GetInterceptor() grpc.UnaryServerInterceptor {
 				UserAgent: userAgent,
 			},
 		)
-		if err != nil {
+		if marshalErr != nil {
 			h.logger.Error(marshalErr.Error())
 		}
 

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"api-rate-limiter/internal/ipnet"
 	"context"
 	"log/slog"
 	"net"
@@ -18,14 +19,14 @@ type Server struct {
 	options Options
 }
 
-func NewServer(options Options, logger *slog.Logger) *Server {
+func NewServer(options Options, app ipnet.IRuleService, logger *slog.Logger) *Server {
 	grpcServer := grpc.NewServer(
 		grpc.ConnectionTimeout(options.ConnectTimeout),
 		grpc.ChainUnaryInterceptor(
 			log.NewInterceptor(logger).GetInterceptor(),
 		),
 	)
-	proto.RegisterRateLimiterServer(grpcServer, NewService(*logger))
+	proto.RegisterRateLimiterServer(grpcServer, NewService(app, *logger))
 
 	return &Server{
 		server:  grpcServer,

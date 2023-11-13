@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"api-rate-limiter/internal/config"
+	"api-rate-limiter/internal/ipnet"
 	"api-rate-limiter/internal/server"
 )
 
@@ -55,12 +56,22 @@ func run() int {
 		&slog.HandlerOptions{Level: cfg.Logger.Level},
 	))
 
+	ruleStorage := ipnet.NewRuleStorage(cfg.DB.DSN)
+	storageConnectErr := ruleStorage.Connect(ctx) // TODO: Where to init storage
+	if storageConnectErr != nil {
+		logg.Error("Failed to init storage: " + storageConnectErr.Error())
+
+		return 1
+	}
+
+	app := ipnet.NewRuleService(ruleStorage)
 	srv := server.NewServer(
 		server.Options{
 			Host:           cfg.Server.Host,
 			Port:           cfg.Server.Port,
 			ConnectTimeout: cfg.Server.ConnectTimeout,
 		},
+		app,
 		logg,
 	)
 
