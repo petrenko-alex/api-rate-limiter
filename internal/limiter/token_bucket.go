@@ -4,7 +4,8 @@ import (
 	"time"
 )
 
-type TokenBucket struct { // todo: thread safe
+// todo: thread safe
+type TokenBucket struct {
 	size       int
 	refillRate RefillRate
 
@@ -14,7 +15,7 @@ type TokenBucket struct { // todo: thread safe
 
 type RefillRate struct {
 	count int
-	time  time.Duration // todo: what if not 1 sec
+	time  time.Duration
 }
 
 func NewTokenBucket(size int, refillRate RefillRate) TokenBucket {
@@ -37,10 +38,12 @@ func NewRefillRate(count int, time time.Duration) RefillRate {
 func (b *TokenBucket) Refill() {
 	const nsInSec = 1e9
 	timePassed := time.Since(b.lastRefill)
-	tokensToAdd := int64(timePassed) * int64(b.refillRate.count) / nsInSec
+	tokensToAdd := int64(timePassed) * int64(b.refillRate.count) / (nsInSec * int64(b.refillRate.time.Seconds()))
 
 	b.tokensCount = min(b.tokensCount+int(tokensToAdd), b.size)
-	b.lastRefill = time.Now()
+	if tokensToAdd > 0 {
+		b.lastRefill = time.Now()
+	}
 }
 
 func (b *TokenBucket) GetTokenCount() int {

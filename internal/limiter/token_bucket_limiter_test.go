@@ -124,4 +124,35 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 		time.Sleep(time.Second * 1)
 		require.Equal(t, 2, tokenBucketLimiter.GetRequestsAllowed())
 	})
+
+	t.Run("tricky refill rate #1", func(t *testing.T) {
+		bucketSize := 3
+		refillRate := limiter.NewRefillRate(3, time.Second*3) // same as 1t/1sec
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", bucketSize, refillRate)
+
+		tokenBucketLimiter.SetRequestCost(3)
+		tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
+		tokenBucketLimiter.SetRequestCost(1)
+
+		// expect 1 token after 1 sec
+		time.Sleep(time.Second * 1)
+		require.Equal(t, 1, tokenBucketLimiter.GetRequestsAllowed())
+	})
+
+	t.Run("tricky refill rate #2", func(t *testing.T) {
+		bucketSize := 3
+		refillRate := limiter.NewRefillRate(125, time.Second*150) // 125t/2.5min = same as 0.8(3)t/1sec
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter("ip", bucketSize, refillRate)
+
+		tokenBucketLimiter.SetRequestCost(3)
+		tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
+		tokenBucketLimiter.SetRequestCost(1)
+
+		// expect 1 full token after 2 sec
+		time.Sleep(time.Second * 1)
+		require.Equal(t, 0, tokenBucketLimiter.GetRequestsAllowed())
+
+		time.Sleep(time.Second * 1)
+		require.Equal(t, 1, tokenBucketLimiter.GetRequestsAllowed())
+	})
 }
