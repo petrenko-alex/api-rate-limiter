@@ -109,7 +109,8 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 		require.NoError(t, err)
 
 		// check allowed requests remained (0 because only 4 tokens left)
-		require.Zero(t, tokenBucketLimiter.GetRequestsAllowed())
+		allowed, _ := tokenBucketLimiter.GetRequestsAllowed(identity)
+		require.Zero(t, allowed)
 
 		// wait 200 ms to refill and make request with cost of 5 tokens
 		time.Sleep(time.Millisecond * 200)
@@ -119,11 +120,13 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 		require.NoError(t, err)
 
 		// check allowed requests remained (0 because only 1 token left)
-		require.Zero(t, tokenBucketLimiter.GetRequestsAllowed())
+		allowed, _ = tokenBucketLimiter.GetRequestsAllowed(identity)
+		require.Zero(t, allowed)
 
 		// wait for full refill and check requests allowed (2 request allowed with cost of 5 each)
 		time.Sleep(time.Second * 1)
-		require.Equal(t, 2, tokenBucketLimiter.GetRequestsAllowed())
+		allowed, _ = tokenBucketLimiter.GetRequestsAllowed(identity)
+		require.Equal(t, 2, allowed)
 	})
 
 	t.Run("tricky refill rate #1", func(t *testing.T) {
@@ -132,12 +135,13 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
 
 		tokenBucketLimiter.SetRequestCost(3)
-		tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
+		_, _ = tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
 		tokenBucketLimiter.SetRequestCost(1)
 
 		// expect 1 token after 1 sec
 		time.Sleep(time.Second * 1)
-		require.Equal(t, 1, tokenBucketLimiter.GetRequestsAllowed())
+		allowed, _ := tokenBucketLimiter.GetRequestsAllowed(identity)
+		require.Equal(t, 1, allowed)
 	})
 
 	t.Run("tricky refill rate #2", func(t *testing.T) {
@@ -146,15 +150,17 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
 
 		tokenBucketLimiter.SetRequestCost(3)
-		tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
+		_, _ = tokenBucketLimiter.SatisfyLimit(identity) // waste all tokens
 		tokenBucketLimiter.SetRequestCost(1)
 
 		// expect 1 full token after 2 sec
 		time.Sleep(time.Second * 1)
-		require.Equal(t, 0, tokenBucketLimiter.GetRequestsAllowed())
+		allowed, _ := tokenBucketLimiter.GetRequestsAllowed(identity)
+		require.Equal(t, 0, allowed)
 
 		time.Sleep(time.Second * 1)
-		require.Equal(t, 1, tokenBucketLimiter.GetRequestsAllowed())
+		allowed, _ = tokenBucketLimiter.GetRequestsAllowed(identity)
+		require.Equal(t, 1, allowed)
 	})
 
 	t.Run("multiple identity", func(t *testing.T) {
@@ -190,5 +196,21 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity2)
 		require.True(t, satisfies)
 		require.NoError(t, err)
+	})
+}
+
+func TestTokenBucketLimiter_SatisfyLimit_Errors(t *testing.T) {
+	t.Run("incorrect identity error", func(t *testing.T) {
+		bucketSize := 3
+		bucketKey := "ip"
+		refillRate := limiter.NewRefillRate(3, time.Second*1)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+
+		identity := limiter.UserIdentityDto{"login": "admin"}
+		_, satisfyLimitErr := tokenBucketLimiter.SatisfyLimit(identity)
+		require.ErrorIs(t, limiter.ErrIncorrectIdentity, satisfyLimitErr)
+
+		_, getRequestsAllowedErr := tokenBucketLimiter.GetRequestsAllowed(identity)
+		require.ErrorIs(t, limiter.ErrIncorrectIdentity, getRequestsAllowedErr)
 	})
 }
