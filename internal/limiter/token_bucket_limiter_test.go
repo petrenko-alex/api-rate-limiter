@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"api-rate-limiter/internal/limiter"
+	"github.com/petrenko-alex/api-rate-limiter/internal/limiter"
 	"github.com/stretchr/testify/require"
 )
 

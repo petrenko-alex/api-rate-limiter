@@ -1,6 +1,6 @@
 package limiter
 
-import "api-rate-limiter/internal/ipnet"
+import "github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
 
 const WhiteListLimiterIdentityKey = "ip"
 

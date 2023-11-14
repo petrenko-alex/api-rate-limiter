@@ -3,8 +3,8 @@ package limiter_test
 import (
 	"testing"
 
-	"api-rate-limiter/internal/ipnet"
-	"api-rate-limiter/internal/limiter"
+	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
+	"github.com/petrenko-alex/api-rate-limiter/internal/limiter"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,7 +39,9 @@ func TestWhiteListLimiter_SatisfyLimit(t *testing.T) {
 
 func TestWhiteListLimiter_SatisfyLimit_Error(t *testing.T) {
 	t.Run("incorrect identity error", func(t *testing.T) {
-		whiteListLimiter := limiter.NewWhiteListLimiter()
+		strg := ipnet.NewRuleStorage("dsn") // todo: mock
+		srvc := ipnet.NewRuleService(strg)
+		whiteListLimiter := limiter.NewWhiteListLimiter(srvc)
 
 		identity := limiter.UserIdentityDto{"login": "admin"} // white list limiter needs ip
 		_, err := whiteListLimiter.SatisfyLimit(identity)
