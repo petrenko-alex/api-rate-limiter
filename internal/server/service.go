@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	proto "api-rate-limiter/api"
-	"api-rate-limiter/internal/ipnet"
+	proto "github.com/petrenko-alex/api-rate-limiter/api"
+	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

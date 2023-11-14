@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"time"
 
-	"api-rate-limiter/internal/limiter"
 	_ "github.com/lib/pq" // driver import
+	"github.com/petrenko-alex/api-rate-limiter/internal/limiter"
 	"gopkg.in/yaml.v3"
 )
 

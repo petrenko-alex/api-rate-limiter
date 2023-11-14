@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"api-rate-limiter/internal/config"
-	"api-rate-limiter/internal/ipnet"
-	"api-rate-limiter/internal/server"
+	"github.com/petrenko-alex/api-rate-limiter/internal/config"
+	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
+	"github.com/petrenko-alex/api-rate-limiter/internal/server"
 )
 
 var configFilePath string

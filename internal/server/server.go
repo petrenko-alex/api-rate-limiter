@@ -1,13 +1,13 @@
 package server
 
 import (
-	"api-rate-limiter/internal/ipnet"
 	"context"
 	"log/slog"
 	"net"
 
-	proto "api-rate-limiter/api"
-	"api-rate-limiter/internal/server/log"
+	proto "github.com/petrenko-alex/api-rate-limiter/api"
+	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
+	"github.com/petrenko-alex/api-rate-limiter/internal/server/log"
 	"google.golang.org/grpc"
 )
 

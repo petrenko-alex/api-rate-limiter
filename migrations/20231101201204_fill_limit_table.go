@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"api-rate-limiter/internal/limiter"
+	"github.com/petrenko-alex/api-rate-limiter/internal/limiter"
 	"github.com/pressly/goose/v3"
 )
 
