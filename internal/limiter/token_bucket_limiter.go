@@ -1,11 +1,6 @@
 package limiter
 
-import "errors"
-
 const DefaultRequestCost = 1
-
-// ErrIncorrectIdentity Ошибка на случай некорректного входного аргумента identity
-var ErrIncorrectIdentity = errors.New("not found bucket key in user identity")
 
 // TokenBucketLimiter позволяет задать rate limit для запросов с использованием алгоритма TokenBucket.
 //
