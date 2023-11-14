@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"api-rate-limiter/internal/config"
-	_ "api-rate-limiter/migrations" // migrations import
-	_ "github.com/lib/pq"           // driver import
+	_ "github.com/lib/pq" // driver import
+	"github.com/petrenko-alex/api-rate-limiter/internal/config"
+	_ "github.com/petrenko-alex/api-rate-limiter/migrations" // migrations import
 	"github.com/pressly/goose/v3"
 )
 
