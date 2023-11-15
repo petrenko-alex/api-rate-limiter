@@ -1,0 +1,7 @@
+with-expecter: true
+dir: "{{.InterfaceDir}}/mocks/"
+outpkg: "mocks"
+packages:
+  github.com/petrenko-alex/api-rate-limiter/internal/ipnet:
+    interfaces:
+      IRuleStorage:
