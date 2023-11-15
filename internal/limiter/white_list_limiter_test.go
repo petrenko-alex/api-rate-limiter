@@ -1,4 +1,4 @@
-package limiter_test
+package limiter_test //nolint:dupl
 
 import (
 	"testing"

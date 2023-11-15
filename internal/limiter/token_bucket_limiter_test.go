@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
+func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) { //nolint:funlen
 	bucketKey := "ip"
 	identity := limiter.UserIdentityDto{bucketKey: "192.168.1.1"}
 
@@ -30,7 +30,6 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) {
 			require.False(t, satisfies)
 			require.NoError(t, err)
 		}
-
 	})
 
 	t.Run("simple refill", func(t *testing.T) {
