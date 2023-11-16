@@ -12,6 +12,7 @@ type UserIdentityDto map[string]string
 // ILimitStorage хранилище лимитов (правил) rate limit'инга запросов.
 type ILimitStorage interface {
 	GetLimits() (*Limits, error)
+	GetLimitsByTypes([]string) (*Limits, error)
 }
 
 // ILimitService основной сервис проверки запроса на rate limit.
