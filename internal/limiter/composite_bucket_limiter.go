@@ -1,12 +1,22 @@
 package limiter
 
+import "errors"
+
+// todo: rename to CompositeTokenBucketLimiter ?
+
+var ErrNoRulesFound = errors.New("not found any rules for given identity")
+
 // CompositeBucketLimiter лимитер с использованием нескольких bucket'ов
-// Набор bucket'ов определяется на основе входных данных в UserIdentityDto.
+// Набор bucket'ов определяется на основе входных данных в UserIdentityDto (ключей).
 // Объединение по логике И: для удовлетворения лимиту необходимо "пройти" все bucket'ы.
 type CompositeBucketLimiter struct{}
 
-func (l CompositeBucketLimiter) SatisfyLimit(_ UserIdentityDto) (bool, error) {
-	// Get ip from identity
+func NewCompositeBucketLimiter() CompositeBucketLimiter {
+	return CompositeBucketLimiter{}
+}
+
+func (l CompositeBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error) {
+	// Get ip from identity ??
 	// 		error if no ip
 	// Get all keys from identity
 	// Find all rules for keys and get limits
@@ -19,5 +29,5 @@ func (l CompositeBucketLimiter) SatisfyLimit(_ UserIdentityDto) (bool, error) {
 	// 			IF NOT SATISFY - return FALSE
 	// return true (because all buckets satisfy)
 
-	panic("implement me")
+	return false, nil
 }
