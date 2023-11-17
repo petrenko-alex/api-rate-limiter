@@ -47,7 +47,7 @@ func (l *TokenBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error
 
 	bucket.Refill()
 
-	if bucket.GetTokenCount() > 0 {
+	if bucket.GetTokenCount() > 0 && l.requestCost <= bucket.GetTokenCount() {
 		bucket.GetToken(l.requestCost)
 
 		return true, nil

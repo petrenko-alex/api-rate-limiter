@@ -32,6 +32,18 @@ func TestTokenBucketLimiter_SatisfyLimit(t *testing.T) { //nolint:funlen
 		}
 	})
 
+	t.Run("too expensive request", func(t *testing.T) {
+		bucketSize := 3
+		refillRate := limiter.NewRefillRate(3, time.Second*1)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+
+		tokenBucketLimiter.SetRequestCost(bucketSize + 1)
+		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity)
+
+		require.False(t, satisfies)
+		require.NoError(t, err)
+	})
+
 	t.Run("simple refill", func(t *testing.T) {
 		bucketSize := 3
 		refillRate := limiter.NewRefillRate(3, time.Second*1)
