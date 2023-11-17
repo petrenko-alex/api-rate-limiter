@@ -5,8 +5,6 @@ import (
 	"strconv"
 )
 
-// todo: rename to CompositeTokenBucketLimiter ?
-
 var (
 	ErrNoLimitsFound = errors.New("not found any limits for given identity")
 	ErrInitLimits    = errors.New("unexpected error during limit initialization")
