@@ -20,13 +20,15 @@ type CompositeBucketLimiter struct {
 
 	limiters map[string]TokenBucketLimiter
 
-	refillRate RefillRate
+	refillRate  RefillRate
+	requestCost int
 }
 
 func NewCompositeBucketLimiter(limitStorage ILimitStorage, refillRate RefillRate) CompositeBucketLimiter {
 	return CompositeBucketLimiter{
 		limitStorage: limitStorage,
 		refillRate:   refillRate,
+		requestCost:  DefaultRequestCost,
 	}
 }
 
@@ -45,7 +47,7 @@ func (l *CompositeBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, e
 
 	for key := range identity {
 		limiter, found := l.limiters[key]
-		if !found { // todo: correct case?
+		if !found {
 			return false, ErrIncorrectIdentity
 		}
 
@@ -76,7 +78,10 @@ func (l *CompositeBucketLimiter) initLimiters(identityKeys []string) error {
 		}
 
 		limiterKey := limit.LimitType.String()
-		l.limiters[limiterKey] = NewTokenBucketLimiter(limiterKey, numLimit, l.refillRate)
+		limiter := NewTokenBucketLimiter(limiterKey, numLimit, l.refillRate)
+		limiter.SetRequestCost(l.requestCost)
+
+		l.limiters[limiterKey] = limiter
 	}
 
 	return nil
@@ -90,4 +95,16 @@ func (l *CompositeBucketLimiter) getIdentityKeys(identity UserIdentityDto) []str
 	}
 
 	return keys
+}
+
+func (l *CompositeBucketLimiter) SetRequestCost(requestCost int) {
+	l.requestCost = requestCost
+
+	if l.limiters == nil || len(l.limiters) == 0 {
+		return
+	}
+
+	for _, limiter := range l.limiters {
+		limiter.SetRequestCost(requestCost)
+	}
 }
