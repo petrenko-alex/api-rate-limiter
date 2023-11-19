@@ -16,7 +16,7 @@ func TestCompositeBucketLimiter_SatisfyLimit(t *testing.T) {
 	t.Run("only one bucket, satisfy", func(t *testing.T) {
 		usedType := limiter.LoginLimit
 		types := []limiter.LimitType{usedType}
-		limitStorage := getMockLimitStorage(t, types, []string{"3"})
+		limitStorage := getMockLimitStorage(t, types, []int{3})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 
 		identity := limiter.UserIdentityDto{usedType.String(): "lucky"}
@@ -29,7 +29,7 @@ func TestCompositeBucketLimiter_SatisfyLimit(t *testing.T) {
 	t.Run("only one bucket, NOT satisfy", func(t *testing.T) {
 		usedType := limiter.LoginLimit
 		types := []limiter.LimitType{usedType}
-		limitStorage := getMockLimitStorage(t, types, []string{"3"})
+		limitStorage := getMockLimitStorage(t, types, []int{3})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 		compositeLimiter.SetRequestCost(4)
 
@@ -46,7 +46,7 @@ func TestCompositeBucketLimiter_SatisfyLimit(t *testing.T) {
 			limiter.IPLimit,
 			limiter.PasswordLimit,
 		}
-		limitStorage := getMockLimitStorage(t, types, []string{"3", "3", "3"})
+		limitStorage := getMockLimitStorage(t, types, []int{3, 3, 3})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 
 		identity := limiter.UserIdentityDto{
@@ -66,7 +66,7 @@ func TestCompositeBucketLimiter_SatisfyLimit(t *testing.T) {
 			limiter.IPLimit,
 			limiter.PasswordLimit,
 		}
-		limitStorage := getMockLimitStorage(t, types, []string{"3", "3", "3"})
+		limitStorage := getMockLimitStorage(t, types, []int{3, 3, 3})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 		compositeLimiter.SetRequestCost(4)
 
@@ -87,7 +87,7 @@ func TestCompositeBucketLimiter_SatisfyLimit(t *testing.T) {
 			limiter.IPLimit,
 			limiter.PasswordLimit,
 		}
-		limitStorage := getMockLimitStorage(t, types, []string{"3", "3", "2"})
+		limitStorage := getMockLimitStorage(t, types, []int{3, 3, 2})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 		compositeLimiter.SetRequestCost(3)
 
@@ -108,7 +108,7 @@ func TestCompositeBucketLimiter_SatisfyLimit_Error(t *testing.T) {
 
 	t.Run("no limits for identity", func(t *testing.T) {
 		key := "age"
-		limitStorage := getMockLimitStorage(t, []limiter.LimitType{}, []string{})
+		limitStorage := getMockLimitStorage(t, []limiter.LimitType{}, []int{})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 
 		satisfies, err := compositeLimiter.SatisfyLimit(
@@ -129,24 +129,10 @@ func TestCompositeBucketLimiter_SatisfyLimit_Error(t *testing.T) {
 		require.False(t, satisfies)
 	})
 
-	t.Run("invalid limit value", func(t *testing.T) {
-		usedType := limiter.LoginLimit
-		types := []limiter.LimitType{usedType}
-		limitStorage := getMockLimitStorage(t, types, []string{"cast error"})
-		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
-
-		satisfies, err := compositeLimiter.SatisfyLimit(
-			limiter.UserIdentityDto{usedType.String(): "root"},
-		)
-
-		require.ErrorIs(t, err, limiter.ErrInitLimits)
-		require.False(t, satisfies)
-	})
-
 	t.Run("use another limiter", func(t *testing.T) {
 		usedType := limiter.LoginLimit
 		types := []limiter.LimitType{usedType}
-		limitStorage := getMockLimitStorage(t, types, []string{"3"})
+		limitStorage := getMockLimitStorage(t, types, []int{3})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 
 		// init limiters with first call
@@ -165,7 +151,7 @@ func TestCompositeBucketLimiter_SatisfyLimit_Error(t *testing.T) {
 	t.Run("some buckets missed for identity", func(t *testing.T) {
 		usedType := limiter.LoginLimit
 		types := []limiter.LimitType{usedType}
-		limitStorage := getMockLimitStorage(t, types, []string{"3"})
+		limitStorage := getMockLimitStorage(t, types, []int{3})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 
 		identity := limiter.UserIdentityDto{
@@ -178,7 +164,7 @@ func TestCompositeBucketLimiter_SatisfyLimit_Error(t *testing.T) {
 	})
 }
 
-func getMockLimitStorage(t *testing.T, types []limiter.LimitType, values []string) *limitermocks.MockILimitStorage {
+func getMockLimitStorage(t *testing.T, types []limiter.LimitType, values []int) *limitermocks.MockILimitStorage {
 	t.Helper()
 
 	mockLimits := make(limiter.Limits, 0, len(types))

@@ -2,12 +2,10 @@ package limiter
 
 import (
 	"errors"
-	"strconv"
 )
 
 var (
 	ErrNoLimitsFound = errors.New("not found any limits for given identity")
-	ErrInitLimits    = errors.New("unexpected error during limit initialization")
 )
 
 // CompositeBucketLimiter лимитер с использованием нескольких bucket'ов
@@ -70,13 +68,8 @@ func (l *CompositeBucketLimiter) initLimiters(identityKeys []string) error {
 
 	l.limiters = make(map[string]TokenBucketLimiter, len(*limits))
 	for _, limit := range *limits {
-		numLimit, limitConvErr := strconv.Atoi(limit.Value)
-		if limitConvErr != nil {
-			return ErrInitLimits
-		}
-
 		limiterKey := limit.LimitType.String()
-		limiter := NewTokenBucketLimiter(limiterKey, numLimit, l.refillRate)
+		limiter := NewTokenBucketLimiter(limiterKey, limit.Value, l.refillRate)
 		limiter.SetRequestCost(l.requestCost)
 
 		l.limiters[limiterKey] = limiter

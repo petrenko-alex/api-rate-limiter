@@ -16,6 +16,6 @@ type Limits []Limit
 
 type Limit struct {
 	LimitType   LimitType
-	Value       string
+	Value       int
 	Description string
 }
