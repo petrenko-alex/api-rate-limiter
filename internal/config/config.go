@@ -55,6 +55,7 @@ func New(ctx context.Context, configFile io.Reader) (*Config, error) {
 		return nil, err
 	}
 
+	// todo: problem with very first start (empty db)
 	limits, err := limitStorage.GetLimits()
 	if err != nil || len(*limits) == 0 {
 		return nil, ErrLimitsNotFound
