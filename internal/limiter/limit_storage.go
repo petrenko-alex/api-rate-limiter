@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"github.com/lib/pq"
 )
 
 var ErrConnectFailed = errors.New("error connecting to db")
@@ -46,8 +48,8 @@ func (s *LimitStorage) GetLimitsByTypes(types []string) (*Limits, error) {
 
 	rows, err := s.db.QueryContext(
 		s.ctx,
-		"select type, value, description from rate_limit where type IN $1;",
-		types,
+		"select type, value, description from rate_limit where type =ANY($1);",
+		pq.Array(types),
 	)
 	if err != nil {
 		return nil, err
