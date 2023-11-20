@@ -20,8 +20,8 @@ type CompositeBucketLimiter struct {
 	requestCost int
 }
 
-func NewCompositeBucketLimiter(limitStorage ILimitStorage, refillRate RefillRate) CompositeBucketLimiter {
-	return CompositeBucketLimiter{
+func NewCompositeBucketLimiter(limitStorage ILimitStorage, refillRate RefillRate) *CompositeBucketLimiter {
+	return &CompositeBucketLimiter{
 		limitStorage: limitStorage,
 		refillRate:   refillRate,
 		requestCost:  DefaultRequestCost,
@@ -72,7 +72,7 @@ func (l *CompositeBucketLimiter) initLimiters(identityKeys []string) error {
 		limiter := NewTokenBucketLimiter(limiterKey, limit.Value, l.refillRate)
 		limiter.SetRequestCost(l.requestCost)
 
-		l.limiters[limiterKey] = &limiter
+		l.limiters[limiterKey] = limiter
 	}
 
 	return nil

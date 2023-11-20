@@ -23,8 +23,8 @@ type TokenBucketLimiter struct {
 	bucketKey string
 }
 
-func NewTokenBucketLimiter(bucketKey string, bucketSize int, refillRate RefillRate) TokenBucketLimiter {
-	return TokenBucketLimiter{
+func NewTokenBucketLimiter(bucketKey string, bucketSize int, refillRate RefillRate) *TokenBucketLimiter {
+	return &TokenBucketLimiter{
 		buckets:     make(map[string]*TokenBucket),
 		requestCost: DefaultRequestCost,
 

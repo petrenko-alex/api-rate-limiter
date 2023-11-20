@@ -10,8 +10,8 @@ type WhiteListLimiter struct {
 	ruleService ipnet.IRuleService
 }
 
-func NewWhiteListLimiter(service *ipnet.RuleService) WhiteListLimiter {
-	return WhiteListLimiter{
+func NewWhiteListLimiter(service *ipnet.RuleService) *WhiteListLimiter {
+	return &WhiteListLimiter{
 		ruleService: service,
 	}
 }

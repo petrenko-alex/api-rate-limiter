@@ -7,7 +7,7 @@ import (
 // LoginFormLimiter лимитер для использования в простых формах авторизации с логином и паролем.
 type LoginFormLimiter struct {
 	ruleService   ipnet.IRuleService
-	bucketLimiter CompositeBucketLimiter
+	bucketLimiter *CompositeBucketLimiter
 }
 
 func NewLoginFormLimiter(ruleService ipnet.IRuleService, limitStorage ILimitStorage, rate RefillRate) *LoginFormLimiter {

@@ -10,8 +10,8 @@ type BlackListLimiter struct {
 	ruleService ipnet.IRuleService
 }
 
-func NewBlackListLimiter(service *ipnet.RuleService) BlackListLimiter {
-	return BlackListLimiter{
+func NewBlackListLimiter(service *ipnet.RuleService) *BlackListLimiter {
+	return &BlackListLimiter{
 		ruleService: service,
 	}
 }
