@@ -4,9 +4,7 @@ import (
 	"errors"
 )
 
-var (
-	ErrNoLimitsFound = errors.New("not found any limits for given identity")
-)
+var ErrNoLimitsFound = errors.New("not found any limits for given identity")
 
 // CompositeBucketLimiter лимитер с использованием нескольких bucket'ов
 // Набор bucket'ов определяется на основе входных данных в UserIdentityDto (ключей).

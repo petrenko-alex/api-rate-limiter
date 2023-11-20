@@ -15,7 +15,7 @@ import (
 func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 	limit := 3
 	refillRate := limiter.NewRefillRate(limit, time.Second*1)
-	whiteListIp, blackListIp, bothListIp, unknownIp := "192.168.1.1", "192.150.10.3", "10.9.123.12", "5.5.5.5"
+	whiteListIP, blackListIP, bothListIP, unknownIP := "192.168.1.1", "192.150.10.3", "10.9.123.12", "5.5.5.5"
 	identity := limiter.UserIdentityDto{
 		limiter.IPLimit.String():       "unknown",
 		limiter.LoginLimit.String():    "lucky",
@@ -25,12 +25,12 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 	// Mock RuleService
 	ruleStorage := mocks.NewMockIRuleStorage(t)
 	ruleStorage.EXPECT().GetForType(ipnet.WhiteList).Return(&ipnet.Rules{
-		ipnet.Rule{ID: 1, IP: whiteListIp, RuleType: ipnet.WhiteList},
-		ipnet.Rule{ID: 3, IP: bothListIp, RuleType: ipnet.WhiteList},
+		ipnet.Rule{ID: 1, IP: whiteListIP, RuleType: ipnet.WhiteList},
+		ipnet.Rule{ID: 3, IP: bothListIP, RuleType: ipnet.WhiteList},
 	}, nil).Maybe()
 	ruleStorage.EXPECT().GetForType(ipnet.BlackList).Return(&ipnet.Rules{
-		ipnet.Rule{ID: 2, IP: blackListIp, RuleType: ipnet.BlackList},
-		ipnet.Rule{ID: 4, IP: bothListIp, RuleType: ipnet.BlackList},
+		ipnet.Rule{ID: 2, IP: blackListIP, RuleType: ipnet.BlackList},
+		ipnet.Rule{ID: 4, IP: bothListIP, RuleType: ipnet.BlackList},
 	}, nil).Maybe()
 	ruleService := ipnet.NewRuleService(ruleStorage)
 
@@ -44,7 +44,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 
 	t.Run("ip in white list", func(t *testing.T) {
 		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
-		identity[limiter.IPLimit.String()] = whiteListIp
+		identity[limiter.IPLimit.String()] = whiteListIP
 
 		satisfies, err := loginFormLimiter.SatisfyLimit(identity)
 		require.True(t, satisfies)
@@ -58,7 +58,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 
 	t.Run("ip in black list", func(t *testing.T) {
 		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
-		identity[limiter.IPLimit.String()] = blackListIp
+		identity[limiter.IPLimit.String()] = blackListIP
 		loginFormLimiter.SetRequestCost(limit + 1)
 
 		satisfies, err := loginFormLimiter.SatisfyLimit(identity)
@@ -73,7 +73,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 
 	t.Run("ip in both lists", func(t *testing.T) {
 		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
-		identity[limiter.IPLimit.String()] = bothListIp
+		identity[limiter.IPLimit.String()] = bothListIP
 
 		satisfies, err := loginFormLimiter.SatisfyLimit(identity)
 		require.False(t, satisfies)
@@ -82,7 +82,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 
 	t.Run("no ip in lists", func(t *testing.T) {
 		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
-		identity[limiter.IPLimit.String()] = unknownIp
+		identity[limiter.IPLimit.String()] = unknownIP
 
 		satisfies, err := loginFormLimiter.SatisfyLimit(identity)
 		require.True(t, satisfies)
