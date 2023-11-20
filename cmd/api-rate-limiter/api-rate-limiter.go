@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/petrenko-alex/api-rate-limiter/internal/app"
 	"github.com/petrenko-alex/api-rate-limiter/internal/config"
-	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
 	"github.com/petrenko-alex/api-rate-limiter/internal/server"
 )
 
@@ -56,22 +56,20 @@ func run() int {
 		&slog.HandlerOptions{Level: cfg.Logger.Level},
 	))
 
-	ruleStorage := ipnet.NewRuleStorage(cfg.DB.DSN)
-	storageConnectErr := ruleStorage.Connect(ctx) // TODO: Where to init storage
-	if storageConnectErr != nil {
-		logg.Error("Failed to init storage: " + storageConnectErr.Error())
+	application, appInitErr := app.New(ctx, cfg, logg)
+	if appInitErr != nil {
+		logg.Error("Failed to init app: " + appInitErr.Error())
 
 		return 1
 	}
 
-	app := ipnet.NewRuleService(ruleStorage)
 	srv := server.NewServer(
 		server.Options{
 			Host:           cfg.Server.Host,
 			Port:           cfg.Server.Port,
 			ConnectTimeout: cfg.Server.ConnectTimeout,
 		},
-		app,
+		application,
 		logg,
 	)
 
