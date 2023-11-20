@@ -14,7 +14,7 @@ var (
 type CompositeBucketLimiter struct {
 	limitStorage ILimitStorage
 
-	limiters map[string]TokenBucketLimiter
+	limiters map[string]*TokenBucketLimiter
 
 	refillRate  RefillRate
 	requestCost int
@@ -66,13 +66,13 @@ func (l *CompositeBucketLimiter) initLimiters(identityKeys []string) error {
 		return ErrNoLimitsFound
 	}
 
-	l.limiters = make(map[string]TokenBucketLimiter, len(*limits))
+	l.limiters = make(map[string]*TokenBucketLimiter, len(*limits))
 	for _, limit := range *limits {
 		limiterKey := limit.LimitType.String()
 		limiter := NewTokenBucketLimiter(limiterKey, limit.Value, l.refillRate)
 		limiter.SetRequestCost(l.requestCost)
 
-		l.limiters[limiterKey] = limiter
+		l.limiters[limiterKey] = &limiter
 	}
 
 	return nil
