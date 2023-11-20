@@ -36,6 +36,13 @@ type Config struct {
 	Logger struct {
 		Level slog.Level
 	}
+
+	App struct {
+		RefillRate struct {
+			Count int
+			Time  time.Duration
+		} `yaml:"refillRate"`
+	}
 }
 
 func (c Config) WithContext(parentCtx context.Context) context.Context {

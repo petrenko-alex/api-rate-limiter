@@ -7,3 +7,7 @@ db:
   migrationsDir: "./migrations/"
 logger:
   level: "info" # debug, info, warn, error
+app:
+  refillRate:
+    count: 3
+    time: 30s

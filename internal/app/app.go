@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/petrenko-alex/api-rate-limiter/internal/config"
 	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
@@ -37,7 +36,7 @@ func New(ctx context.Context, config *config.Config, logger *slog.Logger) (*App,
 	limiterService := limiter.NewLoginFormLimiter(
 		ruleService,
 		limitStorage,
-		limiter.NewRefillRate(3, time.Minute*1), // todo get from config
+		limiter.NewRefillRate(config.App.RefillRate.Count, config.App.RefillRate.Time),
 	)
 
 	return &App{
