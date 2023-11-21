@@ -54,6 +54,11 @@ func (b *TokenBucket) GetToken(tokenCount int) {
 	b.tokensCount -= tokenCount
 }
 
+func (b *TokenBucket) Reset() {
+	b.tokensCount = b.size
+	b.lastRefill = time.Now()
+}
+
 func (r RefillRate) GetTime() time.Duration {
 	return r.time
 }

@@ -225,3 +225,139 @@ func TestTokenBucketLimiter_SatisfyLimit_Errors(t *testing.T) {
 		require.ErrorIs(t, limiter.ErrIncorrectIdentity, getRequestsAllowedErr)
 	})
 }
+
+func TestTokenBucketLimiter_ResetLimit(t *testing.T) {
+	bucketSize := 3
+	bucketKey := "ip"
+	refillRate := limiter.NewRefillRate(1, time.Hour*1)
+	identity := limiter.UserIdentityDto{bucketKey: "192.168.1.1"}
+
+	t.Run("reset on empty bucket", func(t *testing.T) {
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+
+		// drain bucket
+		tokenBucketLimiter.SetRequestCost(bucketSize)
+		tokenBucketLimiter.SatisfyLimit(identity)
+
+		// check bucket "empty"
+		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.False(t, satisfies)
+
+		// reset & check again
+		err = tokenBucketLimiter.ResetLimit(identity)
+		require.NoError(t, err)
+
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+	})
+
+	t.Run("reset on full bucket", func(t *testing.T) {
+		refillTime := time.Second * 1
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(
+			bucketKey,
+			bucketSize,
+			limiter.NewRefillRate(1, refillTime),
+		)
+
+		// drain bucket
+		tokenBucketLimiter.SetRequestCost(bucketSize)
+		tokenBucketLimiter.SatisfyLimit(identity)
+
+		// wait for auto refill
+		time.Sleep(refillTime)
+
+		// check no error
+		resetErr := tokenBucketLimiter.ResetLimit(identity)
+		require.NoError(t, resetErr)
+
+		// check reset don't increase size
+		tokenBucketLimiter.SetRequestCost(bucketSize + 1)
+		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.False(t, satisfies)
+
+		// check normal
+		tokenBucketLimiter.SetRequestCost(bucketSize)
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+	})
+
+	t.Run("reset on half full bucket", func(t *testing.T) {
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+
+		// drain bucket
+		tokenBucketLimiter.SatisfyLimit(identity)
+
+		// try to make bucket size request on half full bucket
+		tokenBucketLimiter.SetRequestCost(bucketSize)
+		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.False(t, satisfies)
+
+		// reset and check again
+		tokenBucketLimiter.ResetLimit(identity)
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+	})
+
+	t.Run("cold reset", func(t *testing.T) {
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+
+		// cold reset, on non-init bucket
+		resetErr := tokenBucketLimiter.ResetLimit(identity)
+		require.NoError(t, resetErr)
+
+		tokenBucketLimiter.SetRequestCost(bucketSize)
+		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+	})
+
+	t.Run("multiple buckets", func(t *testing.T) {
+		identity2 := limiter.UserIdentityDto{bucketKey: "10.25.13.3"}
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+		tokenBucketLimiter.SetRequestCost(bucketSize)
+
+		// drain buckets
+		tokenBucketLimiter.SatisfyLimit(identity)
+		tokenBucketLimiter.SatisfyLimit(identity2)
+
+		// reset first bucket and check
+		tokenBucketLimiter.ResetLimit(identity)
+
+		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity2)
+		require.NoError(t, err)
+		require.False(t, satisfies)
+
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+
+		// reset second bucket and check
+		tokenBucketLimiter.ResetLimit(identity2)
+
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.False(t, satisfies)
+
+		satisfies, err = tokenBucketLimiter.SatisfyLimit(identity2)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+	})
+}
+
+func TestTokenBucketLimiter_ResetLimit_Errors(t *testing.T) {
+	t.Run("incorrect identity", func(t *testing.T) {
+		bucketSize := 3
+		bucketKey := "ip"
+		refillRate := limiter.NewRefillRate(1, time.Hour*1)
+		tokenBucketLimiter := limiter.NewTokenBucketLimiter(bucketKey, bucketSize, refillRate)
+
+		resetErr := tokenBucketLimiter.ResetLimit(limiter.UserIdentityDto{"login": "lucky"})
+		require.ErrorIs(t, resetErr, limiter.ErrIncorrectIdentity)
+	})
+}

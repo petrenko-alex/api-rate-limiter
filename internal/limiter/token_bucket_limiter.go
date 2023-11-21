@@ -19,7 +19,7 @@ type TokenBucketLimiter struct {
 	// По умолчанию - 1.
 	requestCost int
 
-	// Ключ корзины. По данному ключу происходит поиск идентификационных данных методом SatisfyLimit.
+	// Ключ корзины. По данному ключу происходит поиск идентификационных данных методом SatisfyLimit и ResetLimit.
 	bucketKey string
 }
 
@@ -57,8 +57,19 @@ func (l *TokenBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error
 }
 
 func (l *TokenBucketLimiter) ResetLimit(identity UserIdentityDto) error {
-	//TODO implement me
-	panic("implement me")
+	identityValue, foundIdentityValue := identity[l.bucketKey]
+	if !foundIdentityValue {
+		return ErrIncorrectIdentity
+	}
+
+	bucket, foundBucket := l.buckets[identityValue]
+	if !foundBucket {
+		return nil
+	}
+
+	bucket.Reset()
+
+	return nil
 }
 
 func (l *TokenBucketLimiter) SetRequestCost(requestCost int) {
