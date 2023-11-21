@@ -29,3 +29,7 @@ func (l WhiteListLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error) {
 
 	return inWhiteList, nil
 }
+
+func (l WhiteListLimiter) ResetLimit(_ UserIdentityDto) error {
+	return ErrNotSupported
+}

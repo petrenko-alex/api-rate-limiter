@@ -1,6 +1,8 @@
 package limiter
 
-import "github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
+import (
+	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
+)
 
 const BlackListLimiterIdentityKey = "ip"
 
@@ -28,4 +30,8 @@ func (l BlackListLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error) {
 	}
 
 	return !inBlackList, nil
+}
+
+func (l BlackListLimiter) ResetLimit(_ UserIdentityDto) error {
+	return ErrNotSupported
 }

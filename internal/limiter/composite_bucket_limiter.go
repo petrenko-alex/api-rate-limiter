@@ -58,6 +58,11 @@ func (l *CompositeBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, e
 	return true, nil // satisfies if pass all limiter
 }
 
+func (l *CompositeBucketLimiter) ResetLimit(identity UserIdentityDto) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (l *CompositeBucketLimiter) initLimiters(identityKeys []string) error {
 	limits, getLimitsErr := l.limitStorage.GetLimitsByTypes(identityKeys)
 	if getLimitsErr != nil || len(*limits) == 0 {

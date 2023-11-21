@@ -56,6 +56,11 @@ func (l *TokenBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error
 	return false, nil
 }
 
+func (l *TokenBucketLimiter) ResetLimit(identity UserIdentityDto) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (l *TokenBucketLimiter) SetRequestCost(requestCost int) {
 	l.requestCost = requestCost
 }

@@ -57,6 +57,13 @@ func (a *App) LimitCheck(ip, login, password string) (bool, error) {
 	})
 }
 
+func (a *App) LimitReset(ip, login string) error {
+	return a.limiterService.ResetLimit(limiter.UserIdentityDto{
+		limiter.IPLimit.String():    ip,
+		limiter.LoginLimit.String(): login,
+	})
+}
+
 func (a *App) WhiteListAdd(ip string) error {
 	return a.ruleService.WhiteListAdd(ip)
 }

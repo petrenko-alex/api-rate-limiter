@@ -82,8 +82,15 @@ func (s Service) BlackListDelete(_ context.Context, req *proto.BlackListDeleteRe
 	return &proto.BlackListDeleteResponse{}, nil
 }
 
-func (s Service) BucketReset(_ context.Context, _ *proto.BucketResetRequest) (*proto.BucketResetResponse, error) {
-	s.logger.Info("BucketReset executing...")
+func (s Service) BucketReset(_ context.Context, req *proto.BucketResetRequest) (*proto.BucketResetResponse, error) {
+	err := s.app.LimitReset(req.Ip, req.Login)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("Failed resetting limits: %s", err))
+
+		code := codes.Unknown
+
+		return nil, status.Errorf(code, err.Error())
+	}
 
 	return &proto.BucketResetResponse{}, nil
 }
