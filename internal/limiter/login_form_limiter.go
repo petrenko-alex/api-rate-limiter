@@ -45,11 +45,6 @@ func (l *LoginFormLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error) 
 }
 
 func (l *LoginFormLimiter) ResetLimit(identity UserIdentityDto) error {
-	validationErr := l.validateIdentity(identity)
-	if validationErr != nil {
-		return validationErr
-	}
-
 	return l.bucketLimiter.ResetLimit(identity)
 }
 

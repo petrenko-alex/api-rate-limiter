@@ -113,22 +113,13 @@ func TestLoginFormLimiter_SatisfyLimit_Error(t *testing.T) {
 		_, err := loginFormLimiter.SatisfyLimit(notFullIdentity)
 		require.ErrorIs(t, err, expectedErr)
 
-		err = loginFormLimiter.ResetLimit(notFullIdentity)
-		require.ErrorIs(t, err, expectedErr)
-
 		// not full identity #2
 		delete(notFullIdentity, limiter.LoginLimit.String())
 		_, err = loginFormLimiter.SatisfyLimit(notFullIdentity)
 		require.ErrorIs(t, err, expectedErr)
 
-		err = loginFormLimiter.ResetLimit(notFullIdentity)
-		require.ErrorIs(t, err, expectedErr)
-
 		// empty identity
 		_, err = loginFormLimiter.SatisfyLimit(emptyIdentity)
 		require.ErrorIs(t, err, expectedErr)
-
-		err = loginFormLimiter.ResetLimit(emptyIdentity)
-		require.Error(t, err, expectedErr)
 	})
 }
