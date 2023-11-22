@@ -59,8 +59,27 @@ func (l *CompositeBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, e
 }
 
 func (l *CompositeBucketLimiter) ResetLimit(identity UserIdentityDto) error {
-	//TODO implement me
-	panic("implement me")
+	if len(identity) == 0 {
+		return ErrIncorrectIdentity
+	}
+
+	if len(l.limiters) == 0 {
+		return ErrNoLimitsFound
+	}
+
+	for key := range identity {
+		limiter, found := l.limiters[key]
+		if !found {
+			return ErrIncorrectIdentity
+		}
+
+		err := limiter.ResetLimit(identity)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (l *CompositeBucketLimiter) initLimiters(identityKeys []string) error {

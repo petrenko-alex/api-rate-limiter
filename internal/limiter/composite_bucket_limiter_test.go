@@ -103,30 +103,88 @@ func TestCompositeBucketLimiter_SatisfyLimit(t *testing.T) {
 	})
 }
 
-func TestCompositeBucketLimiter_SatisfyLimit_Error(t *testing.T) {
+func TestCompositeBucketLimiter_ResetLimit(t *testing.T) {
+	refillRate := limiter.NewRefillRate(1, time.Hour*1)
+
+	t.Run("one bucket reset", func(t *testing.T) {
+		usedType := limiter.LoginLimit
+		types := []limiter.LimitType{usedType}
+		limitStorage := getMockLimitStorage(t, types, []int{3})
+		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
+
+		// drain bucket
+		identity := limiter.UserIdentityDto{usedType.String(): "lucky"}
+		compositeLimiter.SetRequestCost(3)
+		compositeLimiter.SatisfyLimit(identity)
+
+		// reset & check
+		resetErr := compositeLimiter.ResetLimit(identity)
+		require.NoError(t, resetErr)
+
+		satisfies, err := compositeLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+	})
+
+	t.Run("multiple buckets reset", func(t *testing.T) {
+		types := []limiter.LimitType{
+			limiter.LoginLimit,
+			limiter.IPLimit,
+			limiter.PasswordLimit,
+		}
+		limitStorage := getMockLimitStorage(t, types, []int{3, 3, 3})
+		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
+
+		identity := limiter.UserIdentityDto{
+			types[0].String(): "lucky",
+			types[1].String(): "192.168.1.1",
+			types[2].String(): "123456",
+		}
+
+		// drain buckets
+		compositeLimiter.SetRequestCost(3)
+		compositeLimiter.SatisfyLimit(identity)
+
+		// reset & check
+		resetErr := compositeLimiter.ResetLimit(identity)
+		require.NoError(t, resetErr)
+
+		satisfies, err := compositeLimiter.SatisfyLimit(identity)
+		require.NoError(t, err)
+		require.True(t, satisfies)
+	})
+}
+
+func TestCompositeBucketLimiter_Error(t *testing.T) {
 	refillRate := limiter.NewRefillRate(3, time.Second*1)
 
 	t.Run("no limits for identity", func(t *testing.T) {
 		key := "age"
+		identity := limiter.UserIdentityDto{key: "18"}
 		limitStorage := getMockLimitStorage(t, []limiter.LimitType{}, []int{})
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 
-		satisfies, err := compositeLimiter.SatisfyLimit(
-			limiter.UserIdentityDto{key: "18"},
-		)
-
+		satisfies, err := compositeLimiter.SatisfyLimit(identity)
 		require.ErrorIs(t, err, limiter.ErrNoLimitsFound)
 		require.False(t, satisfies)
+
+		err = compositeLimiter.ResetLimit(identity)
+		require.ErrorIs(t, err, limiter.ErrNoLimitsFound)
 	})
 
 	t.Run("empty identity error", func(t *testing.T) {
 		limitStorage := limitermocks.NewMockILimitStorage(t)
+		identity := limiter.UserIdentityDto{}
 		compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
 
-		satisfies, err := compositeLimiter.SatisfyLimit(limiter.UserIdentityDto{})
-
+		// check for SatisfyLimit
+		satisfies, err := compositeLimiter.SatisfyLimit(identity)
 		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
 		require.False(t, satisfies)
+
+		// check for ResetLimit
+		err = compositeLimiter.ResetLimit(identity)
+		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
 	})
 
 	t.Run("use another limiter", func(t *testing.T) {
@@ -142,9 +200,11 @@ func TestCompositeBucketLimiter_SatisfyLimit_Error(t *testing.T) {
 		require.NoError(t, err)
 
 		// second call using another identity
-		_, err = compositeLimiter.SatisfyLimit(
-			limiter.UserIdentityDto{"age": "18"},
-		)
+		incorrectIdentity := limiter.UserIdentityDto{"age": "18"}
+		_, err = compositeLimiter.SatisfyLimit(incorrectIdentity)
+		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
+
+		err = compositeLimiter.ResetLimit(incorrectIdentity)
 		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
 	})
 
@@ -159,7 +219,9 @@ func TestCompositeBucketLimiter_SatisfyLimit_Error(t *testing.T) {
 			"age":             "18",
 		}
 		_, err := compositeLimiter.SatisfyLimit(identity)
+		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
 
+		err = compositeLimiter.ResetLimit(identity)
 		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
 	})
 }
