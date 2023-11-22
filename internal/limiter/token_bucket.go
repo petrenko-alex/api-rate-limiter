@@ -38,7 +38,7 @@ func NewRefillRate(count int, time time.Duration) RefillRate {
 func (b *TokenBucket) Refill() {
 	const nsInSec = 1e9
 	timePassed := time.Since(b.lastRefill)
-	tokensToAdd := int64(timePassed) * int64(b.refillRate.count) / (nsInSec * int64(b.refillRate.time.Seconds()))
+	tokensToAdd := int64(timePassed) * int64(b.refillRate.count) / int64(nsInSec*b.refillRate.time.Seconds())
 
 	b.tokensCount = min(b.tokensCount+int(tokensToAdd), b.size)
 	if tokensToAdd > 0 {

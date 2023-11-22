@@ -254,11 +254,11 @@ func TestTokenBucketLimiter_ResetLimit(t *testing.T) {
 	})
 
 	t.Run("reset on full bucket", func(t *testing.T) {
-		refillTime := time.Second * 1
+		refillTime := time.Millisecond * 100
 		tokenBucketLimiter := limiter.NewTokenBucketLimiter(
 			bucketKey,
 			bucketSize,
-			limiter.NewRefillRate(1, refillTime),
+			limiter.NewRefillRate(3, refillTime),
 		)
 
 		// drain bucket
