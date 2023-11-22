@@ -45,8 +45,12 @@ func (l *LoginFormLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error) 
 }
 
 func (l *LoginFormLimiter) ResetLimit(identity UserIdentityDto) error {
-	//TODO implement me
-	panic("implement me")
+	validationErr := l.validateIdentity(identity)
+	if validationErr != nil {
+		return validationErr
+	}
+
+	return l.bucketLimiter.ResetLimit(identity)
 }
 
 func (l *LoginFormLimiter) SetRequestCost(requestCost int) {

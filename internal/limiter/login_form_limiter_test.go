@@ -101,20 +101,34 @@ func TestLoginFormLimiter_SatisfyLimit_Error(t *testing.T) {
 	refillRate := limiter.NewRefillRate(3, time.Second*1)
 
 	t.Run("incorrect identity", func(t *testing.T) {
-		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
-
-		_, err := loginFormLimiter.SatisfyLimit(limiter.UserIdentityDto{
+		expectedErr := limiter.ErrIncorrectIdentity
+		emptyIdentity := limiter.UserIdentityDto{}
+		notFullIdentity := limiter.UserIdentityDto{
 			limiter.LoginLimit.String():    "lucky",
 			limiter.PasswordLimit.String(): "root",
-		})
-		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
+		}
+		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
 
-		_, err = loginFormLimiter.SatisfyLimit(limiter.UserIdentityDto{
-			limiter.PasswordLimit.String(): "root",
-		})
-		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
+		// not full identity #1
+		_, err := loginFormLimiter.SatisfyLimit(notFullIdentity)
+		require.ErrorIs(t, err, expectedErr)
 
-		_, err = loginFormLimiter.SatisfyLimit(limiter.UserIdentityDto{})
-		require.ErrorIs(t, err, limiter.ErrIncorrectIdentity)
+		err = loginFormLimiter.ResetLimit(notFullIdentity)
+		require.ErrorIs(t, err, expectedErr)
+
+		// not full identity #2
+		delete(notFullIdentity, limiter.LoginLimit.String())
+		_, err = loginFormLimiter.SatisfyLimit(notFullIdentity)
+		require.ErrorIs(t, err, expectedErr)
+
+		err = loginFormLimiter.ResetLimit(notFullIdentity)
+		require.ErrorIs(t, err, expectedErr)
+
+		// empty identity
+		_, err = loginFormLimiter.SatisfyLimit(emptyIdentity)
+		require.ErrorIs(t, err, expectedErr)
+
+		err = loginFormLimiter.ResetLimit(emptyIdentity)
+		require.Error(t, err, expectedErr)
 	})
 }
