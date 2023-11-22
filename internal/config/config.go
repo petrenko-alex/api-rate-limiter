@@ -50,19 +50,16 @@ func (c Config) WithContext(parentCtx context.Context) context.Context {
 }
 
 func New(ctx context.Context, configFile io.Reader) (*Config, error) {
-	config := &Config{}
-
-	yamlDecoder := yaml.NewDecoder(configFile)
-	if err := yamlDecoder.Decode(&config); err != nil {
+	config, err := ForMigrator(ctx, configFile)
+	if err != nil {
 		return nil, err
 	}
 
 	limitStorage := limiter.NewLimitStorage(config.DB.DSN)
-	if err := limitStorage.Connect(ctx); err != nil {
+	if err = limitStorage.Connect(ctx); err != nil {
 		return nil, err
 	}
 
-	// todo: problem with very first start (empty db)
 	limits, err := limitStorage.GetLimits()
 	if err != nil || len(*limits) == 0 {
 		return nil, ErrLimitsNotFound
@@ -82,6 +79,17 @@ func New(ctx context.Context, configFile io.Reader) (*Config, error) {
 
 	if config.Limits.Login == nil || config.Limits.Password == nil || config.Limits.IP == nil {
 		return nil, ErrLimitsNotFound
+	}
+
+	return config, nil
+}
+
+func ForMigrator(_ context.Context, configFile io.Reader) (*Config, error) {
+	config := &Config{}
+
+	yamlDecoder := yaml.NewDecoder(configFile)
+	if err := yamlDecoder.Decode(&config); err != nil {
+		return nil, err
 	}
 
 	return config, nil
