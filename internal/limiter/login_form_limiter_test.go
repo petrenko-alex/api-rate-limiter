@@ -43,7 +43,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 	}, nil).Maybe()
 
 	t.Run("ip in white list", func(t *testing.T) {
-		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
+		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limiter.NewCompositeBucketLimiter(limitStorage, refillRate))
 		identity[limiter.IPLimit.String()] = whiteListIP
 
 		satisfies, err := loginFormLimiter.SatisfyLimit(identity)
@@ -57,7 +57,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 	})
 
 	t.Run("ip in black list", func(t *testing.T) {
-		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
+		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limiter.NewCompositeBucketLimiter(limitStorage, refillRate))
 		identity[limiter.IPLimit.String()] = blackListIP
 		loginFormLimiter.SetRequestCost(limit + 1)
 
@@ -72,7 +72,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 	})
 
 	t.Run("ip in both lists", func(t *testing.T) {
-		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
+		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limiter.NewCompositeBucketLimiter(limitStorage, refillRate))
 		identity[limiter.IPLimit.String()] = bothListIP
 
 		satisfies, err := loginFormLimiter.SatisfyLimit(identity)
@@ -81,7 +81,7 @@ func TestLoginFormLimiter_SatisfyLimit(t *testing.T) {
 	})
 
 	t.Run("no ip in lists", func(t *testing.T) {
-		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
+		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limiter.NewCompositeBucketLimiter(limitStorage, refillRate))
 		identity[limiter.IPLimit.String()] = unknownIP
 
 		satisfies, err := loginFormLimiter.SatisfyLimit(identity)
@@ -107,7 +107,7 @@ func TestLoginFormLimiter_SatisfyLimit_Error(t *testing.T) {
 			limiter.LoginLimit.String():    "lucky",
 			limiter.PasswordLimit.String(): "root",
 		}
-		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limitStorage, refillRate)
+		loginFormLimiter := limiter.NewLoginFormLimiter(ruleService, limiter.NewCompositeBucketLimiter(limitStorage, refillRate))
 
 		// not full identity #1
 		_, err := loginFormLimiter.SatisfyLimit(notFullIdentity)

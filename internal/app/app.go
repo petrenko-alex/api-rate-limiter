@@ -19,25 +19,27 @@ type App struct {
 }
 
 func New(ctx context.Context, config *config.Config, logger *slog.Logger) (*App, error) {
+	// Init Rule Service
 	ruleStorage := ipnet.NewRuleStorage(config.DB.DSN)
 	err := ruleStorage.Connect(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	ruleService := ipnet.NewRuleService(ruleStorage)
+
+	// Init Limiter Service
 	limitStorage := limiter.NewLimitStorage(config.DB.DSN)
 	err = limitStorage.Connect(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	ruleService := ipnet.NewRuleService(ruleStorage)
-
-	limiterService := limiter.NewLoginFormLimiter(
-		ruleService,
+	bucketLimiter := limiter.NewCompositeBucketLimiter(
 		limitStorage,
 		limiter.NewRefillRate(config.App.RefillRate.Count, config.App.RefillRate.Time),
 	)
+	limiterService := limiter.NewLoginFormLimiter(ruleService, bucketLimiter)
 
 	return &App{
 		ruleService:    ruleService,

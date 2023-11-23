@@ -12,12 +12,11 @@ type LoginFormLimiter struct {
 
 func NewLoginFormLimiter(
 	ruleService ipnet.IRuleService,
-	limitStorage ILimitStorage,
-	rate RefillRate,
+	bucketLimiter *CompositeBucketLimiter,
 ) *LoginFormLimiter {
 	return &LoginFormLimiter{
 		ruleService:   ruleService,
-		bucketLimiter: NewCompositeBucketLimiter(limitStorage, rate),
+		bucketLimiter: bucketLimiter,
 	}
 }
 
