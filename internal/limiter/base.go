@@ -23,3 +23,8 @@ type ILimitService interface {
 	SatisfyLimit(UserIdentityDto) (bool, error)
 	ResetLimit(UserIdentityDto) error
 }
+
+// ITokenBucketGB сервис подчистки устаревших бакетов.
+type ITokenBucketGB interface {
+	Sweep()
+}

@@ -76,6 +76,10 @@ func (b *TokenBucket) Reset() {
 	b.Unlock()
 }
 
+func (b *TokenBucket) GetLastRefill() time.Time {
+	return b.lastRefill
+}
+
 func (r RefillRate) GetTime() time.Duration {
 	return r.time
 }

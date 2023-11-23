@@ -121,3 +121,7 @@ func (l *CompositeBucketLimiter) SetRequestCost(requestCost int) {
 		limiter.SetRequestCost(requestCost)
 	}
 }
+
+func (l *CompositeBucketLimiter) GetLimiters() map[string]*TokenBucketLimiter {
+	return l.limiters
+}

@@ -114,3 +114,7 @@ func (l *TokenBucketLimiter) createBucket(identityValue string) *TokenBucket {
 
 	return l.buckets[identityValue]
 }
+
+func (l *TokenBucketLimiter) GetBuckets() map[string]*TokenBucket {
+	return l.buckets
+}
