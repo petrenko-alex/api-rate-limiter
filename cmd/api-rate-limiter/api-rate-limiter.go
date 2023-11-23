@@ -63,6 +63,9 @@ func run() int {
 		return 1
 	}
 
+	logg.Info("Starting Garbage Collector")
+	application.RunGB(ctx)
+
 	srv := server.NewServer(
 		server.Options{
 			Host:           cfg.Server.Host,

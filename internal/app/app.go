@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/petrenko-alex/api-rate-limiter/internal/config"
 	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
@@ -12,6 +13,7 @@ import (
 type App struct {
 	ruleService    ipnet.IRuleService
 	limiterService limiter.ILimitService
+	limiterGB      limiter.ITokenBucketGB
 
 	ctx    context.Context
 	logger *slog.Logger
@@ -41,9 +43,14 @@ func New(ctx context.Context, config *config.Config, logger *slog.Logger) (*App,
 	)
 	limiterService := limiter.NewLoginFormLimiter(ruleService, bucketLimiter)
 
+	// Init Limiter Garbage Collector
+	tokenBucketTTL := time.Second * 10 // todo: from config
+	limiterGB := limiter.NewTokenBucketGB(bucketLimiter, tokenBucketTTL)
+
 	return &App{
 		ruleService:    ruleService,
 		limiterService: limiterService,
+		limiterGB:      limiterGB,
 
 		logger: logger,
 		ctx:    ctx,
@@ -80,4 +87,19 @@ func (a *App) BlackListAdd(ip string) error {
 
 func (a *App) BlackListDelete(ip string) error {
 	return a.ruleService.BlackListDelete(ip)
+}
+
+func (a *App) RunGB(ctx context.Context) {
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				a.logger.Info("GB Finishing...") // todo: remove
+				return
+			case <-time.After(time.Second * 30): // todo: from config
+				a.logger.Info("GB Sweep") // todo: remove
+				a.limiterGB.Sweep()
+			}
+		}
+	}()
 }
