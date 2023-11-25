@@ -25,6 +25,9 @@ func (gb *TokenBucketGB) Sweep() error {
 
 	bucketsToDelete := make([]string, 0)
 	for key, bucket := range buckets {
+		if !bucket.Full() {
+			continue
+		}
 
 		lastRefill := bucket.GetLastRefill()
 		if time.Since(lastRefill) < gb.tokenBucketTTL {

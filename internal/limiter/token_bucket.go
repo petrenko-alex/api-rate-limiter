@@ -84,6 +84,10 @@ func (b *TokenBucket) GetLastRefill() time.Time {
 	return b.lastRefill
 }
 
+func (b *TokenBucket) Full() bool {
+	return b.GetTokenCount() == b.GetSize()
+}
+
 func (r RefillRate) GetTime() time.Duration {
 	return r.time
 }

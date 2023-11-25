@@ -15,7 +15,7 @@ func TestTokenBucketGB_Sweep(t *testing.T) {
 	tokenBucketLimiter := getTokenBucketLimiter(t, size, refillRate)
 	gb := limiter.NewTokenBucketGB(tokenBucketLimiter, ttl)
 
-	// fill with some token buckets and drain it
+	// init token buckets
 	tokenBucketLimiter.SetRequestCost(size)
 	identities := []limiter.UserIdentityDto{
 		{limiter.IPLimit.String(): "192.168.1.1"},
@@ -25,35 +25,20 @@ func TestTokenBucketGB_Sweep(t *testing.T) {
 	}
 	for _, identity := range identities {
 		tokenBucketLimiter.SatisfyLimit(identity)
+		tokenBucketLimiter.ResetLimit(identity)
 	}
+	require.Len(t, tokenBucketLimiter.GetBuckets(), len(identities))
+
+	// drain one identity to check GB sweeping only full buckets (despite ttl expired)
+	tokenBucketLimiter.SatisfyLimit(identities[2])
 
 	// sleep to make buckets refill date outdated
 	time.Sleep(ttl)
 
-	// manually reset limits for some identities, to make its refill date fresh
-	tokenBucketLimiter.ResetLimit(identities[2])
-	tokenBucketLimiter.ResetLimit(identities[3])
-
-	// drain identities with fresh refill date
-	tokenBucketLimiter.SatisfyLimit(identities[2])
-	tokenBucketLimiter.SatisfyLimit(identities[3])
-
 	// run db
 	gb.Sweep()
 
-	// check first identity pair satisfies
-	for _, identity := range identities[0:2] {
-		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity)
-		require.NoError(t, err)
-		require.True(t, satisfies)
-	}
-
-	// check second pair not
-	for _, identity := range identities[2:4] {
-		satisfies, err := tokenBucketLimiter.SatisfyLimit(identity)
-		require.NoError(t, err)
-		require.False(t, satisfies)
-	}
+	require.Len(t, tokenBucketLimiter.GetBuckets(), 1)
 }
 
 func getTokenBucketLimiter(t *testing.T, size int, refillRate limiter.RefillRate) *limiter.CompositeBucketLimiter {

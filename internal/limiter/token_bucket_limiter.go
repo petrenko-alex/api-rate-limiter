@@ -1,6 +1,8 @@
 package limiter
 
-import "sync"
+import (
+	"sync"
+)
 
 const DefaultRequestCost = 1
 

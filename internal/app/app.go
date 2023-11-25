@@ -102,11 +102,11 @@ func (a *App) RunGB() {
 		for {
 			select {
 			case <-a.ctx.Done():
-				a.logger.Info("GB Finishing...") // todo: remove
+				a.logger.Info("GB finished.")
 
 				return
 			case <-time.After(a.config.App.GarbageCollector.Interval):
-				a.logger.Info("GB Sweep") // todo: remove
+				a.logger.Info("GB sweeping..")
 
 				err := a.limiterGB.Sweep()
 				if err != nil {
