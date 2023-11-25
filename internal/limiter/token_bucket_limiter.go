@@ -1,5 +1,7 @@
 package limiter
 
+import "sync"
+
 const DefaultRequestCost = 1
 
 // TokenBucketLimiter позволяет задать rate limit для запросов с использованием алгоритма TokenBucket.
@@ -9,6 +11,8 @@ const DefaultRequestCost = 1
 //
 // Позволяет проверять возможность выполнения очередного запроса и получать количество доступных.
 type TokenBucketLimiter struct {
+	sync.Mutex
+
 	buckets    map[string]*TokenBucket
 	bucketSize int
 
@@ -43,6 +47,8 @@ func (l *TokenBucketLimiter) SatisfyLimit(identity UserIdentityDto) (bool, error
 		return false, ErrIncorrectIdentity
 	}
 
+	l.Lock()
+	defer l.Unlock()
 	bucket := l.initBucket(identityValue)
 
 	bucket.Refill()
@@ -62,8 +68,10 @@ func (l *TokenBucketLimiter) ResetLimit(identity UserIdentityDto) error {
 		return ErrIncorrectIdentity
 	}
 
-	bucket, foundBucket := l.buckets[identityValue]
-	if !foundBucket {
+	l.Lock()
+	defer l.Unlock()
+	bucket := l.findBucket(identityValue)
+	if bucket == nil {
 		return nil
 	}
 
@@ -73,7 +81,11 @@ func (l *TokenBucketLimiter) ResetLimit(identity UserIdentityDto) error {
 }
 
 func (l *TokenBucketLimiter) SweepBucket(bucketKey string) error {
-	delete(l.buckets, bucketKey)
+	l.Lock()
+
+	delete(l.GetBuckets(), bucketKey)
+
+	l.Unlock()
 
 	return nil
 }
@@ -88,6 +100,9 @@ func (l *TokenBucketLimiter) GetRequestsAllowed(identity UserIdentityDto) (int, 
 	if !found {
 		return 0, ErrIncorrectIdentity
 	}
+
+	l.Lock()
+	defer l.Unlock()
 
 	bucket := l.initBucket(identityValue)
 

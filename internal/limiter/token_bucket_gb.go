@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// todo: thread safe
 type TokenBucketGB struct {
 	tokenBucketLimiter ITokenBucketLimitService
 
