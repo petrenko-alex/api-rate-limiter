@@ -59,6 +59,10 @@ func (b *TokenBucket) GetTokenCount() int {
 	return b.tokensCount
 }
 
+func (b *TokenBucket) GetSize() int {
+	return b.size
+}
+
 func (b *TokenBucket) GetToken(tokenCount int) {
 	b.Lock()
 

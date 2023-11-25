@@ -1,6 +1,9 @@
 package limiter
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	// ErrIncorrectIdentity Ошибка на случай некорректного входного аргумента identity.
@@ -11,6 +14,16 @@ var (
 // UserIdentityDto тип для идентификации клиента, запрос которого подвергается rate limit'ингу.
 // Может содержать один или несколько пар ключ-значение. Лимитеры сами решают, с какими ключами работать.
 type UserIdentityDto map[string]string
+
+// ITokenBucket интерфейс хранилища токенов.
+type ITokenBucket interface {
+	GetSize() int
+	GetTokenCount() int
+	GetLastRefill() time.Time
+	GetToken(int)
+	Refill()
+	Reset()
+}
 
 // ILimitStorage хранилище лимитов (правил) rate limit'инга запросов.
 type ILimitStorage interface {
