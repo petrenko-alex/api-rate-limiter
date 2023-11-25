@@ -5,6 +5,9 @@ generate:
 			--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 			api/RateLimiter.proto
 
+run:
+	docker-compose -f "./deployments/docker-compose.yml" up
+
 build-migrations:
 	go build -v -o $(BIN_MIGRATE) ./cmd/migrations
 
