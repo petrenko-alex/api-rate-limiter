@@ -2,6 +2,8 @@ package limiter
 
 import (
 	"errors"
+	"math"
+	"strings"
 )
 
 var ErrNoLimitsFound = errors.New("not found any limits for given identity")
@@ -82,6 +84,77 @@ func (l *CompositeBucketLimiter) ResetLimit(identity UserIdentityDto) error {
 	return nil
 }
 
+func (l *CompositeBucketLimiter) SweepBucket(compositeKey string) error {
+	limiterKey, bucketKey, foundSep := strings.Cut(compositeKey, "_")
+	if !foundSep {
+		return ErrIncorrectBucketKey
+	}
+
+	limiter, foundLimiter := l.limiters[limiterKey]
+	if !foundLimiter {
+		return ErrIncorrectBucketKey
+	}
+
+	return limiter.SweepBucket(bucketKey)
+}
+
+func (l *CompositeBucketLimiter) SetRequestCost(requestCost int) {
+	l.requestCost = requestCost
+
+	if l.limiters == nil || len(l.limiters) == 0 {
+		return
+	}
+
+	for _, limiter := range l.limiters {
+		limiter.SetRequestCost(requestCost)
+	}
+}
+
+// GetRequestsAllowed возращает минимум из остатков всех лимитеров.
+func (l *CompositeBucketLimiter) GetRequestsAllowed(identity UserIdentityDto) (int, error) {
+	identityKeys := l.getIdentityKeys(identity)
+	if len(identity) == 0 {
+		return 0, ErrIncorrectIdentity
+	}
+
+	if len(l.limiters) == 0 {
+		limitersInitErr := l.initLimiters(identityKeys)
+		if limitersInitErr != nil {
+			return 0, limitersInitErr
+		}
+	}
+
+	minAllowed := math.MaxInt
+	for key := range identity {
+		limiter, found := l.limiters[key]
+		if !found {
+			return 0, ErrIncorrectIdentity
+		}
+
+		limiterAllowed, checkErr := limiter.GetRequestsAllowed(identity)
+		if checkErr != nil {
+			return 0, checkErr
+		}
+
+		minAllowed = min(minAllowed, limiterAllowed)
+	}
+
+	return minAllowed, nil
+}
+
+func (l *CompositeBucketLimiter) GetBuckets() map[string]*TokenBucket {
+	buckets := make(map[string]*TokenBucket)
+
+	for limiterKey, limiter := range l.limiters {
+		limiterBuckets := limiter.GetBuckets()
+		for bucketKey, bucket := range limiterBuckets {
+			buckets[limiterKey+"_"+bucketKey] = bucket
+		}
+	}
+
+	return buckets
+}
+
 func (l *CompositeBucketLimiter) initLimiters(identityKeys []string) error {
 	limits, getLimitsErr := l.limitStorage.GetLimitsByTypes(identityKeys)
 	if getLimitsErr != nil || len(*limits) == 0 {
@@ -108,20 +181,4 @@ func (l *CompositeBucketLimiter) getIdentityKeys(identity UserIdentityDto) []str
 	}
 
 	return keys
-}
-
-func (l *CompositeBucketLimiter) SetRequestCost(requestCost int) {
-	l.requestCost = requestCost
-
-	if l.limiters == nil || len(l.limiters) == 0 {
-		return
-	}
-
-	for _, limiter := range l.limiters {
-		limiter.SetRequestCost(requestCost)
-	}
-}
-
-func (l *CompositeBucketLimiter) GetLimiters() map[string]*TokenBucketLimiter {
-	return l.limiters
 }

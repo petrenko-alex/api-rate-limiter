@@ -7,8 +7,9 @@ import (
 
 var (
 	// ErrIncorrectIdentity Ошибка на случай некорректного входного аргумента identity.
-	ErrIncorrectIdentity = errors.New("not found appropriate key in user identity")
-	ErrNotSupported      = errors.New("operation not supported")
+	ErrIncorrectIdentity  = errors.New("not found appropriate key in user identity")
+	ErrNotSupported       = errors.New("operation not supported")
+	ErrIncorrectBucketKey = errors.New("incorrect bucket key")
 )
 
 // UserIdentityDto тип для идентификации клиента, запрос которого подвергается rate limit'ингу.
@@ -35,6 +36,16 @@ type ILimitStorage interface {
 type ILimitService interface {
 	SatisfyLimit(UserIdentityDto) (bool, error)
 	ResetLimit(UserIdentityDto) error
+}
+
+// ITokenBucketLimitService интерфейс лимитеров на основе TokenBucket.
+type ITokenBucketLimitService interface {
+	ILimitService
+
+	SetRequestCost(int)
+	GetRequestsAllowed(UserIdentityDto) (int, error)
+	GetBuckets() map[string]*TokenBucket
+	SweepBucket(string) error
 }
 
 // ITokenBucketGB сервис подчистки устаревших бакетов.

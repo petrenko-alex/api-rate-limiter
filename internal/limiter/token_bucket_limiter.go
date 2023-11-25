@@ -72,6 +72,12 @@ func (l *TokenBucketLimiter) ResetLimit(identity UserIdentityDto) error {
 	return nil
 }
 
+func (l *TokenBucketLimiter) SweepBucket(bucketKey string) error {
+	delete(l.buckets, bucketKey)
+
+	return nil
+}
+
 func (l *TokenBucketLimiter) SetRequestCost(requestCost int) {
 	l.requestCost = requestCost
 }
@@ -88,6 +94,10 @@ func (l *TokenBucketLimiter) GetRequestsAllowed(identity UserIdentityDto) (int, 
 	bucket.Refill()
 
 	return bucket.GetTokenCount() / l.requestCost, nil
+}
+
+func (l *TokenBucketLimiter) GetBuckets() map[string]*TokenBucket {
+	return l.buckets
 }
 
 func (l *TokenBucketLimiter) initBucket(identityValue string) *TokenBucket {
@@ -113,8 +123,4 @@ func (l *TokenBucketLimiter) createBucket(identityValue string) *TokenBucket {
 	l.buckets[identityValue] = &newBucket
 
 	return l.buckets[identityValue]
-}
-
-func (l *TokenBucketLimiter) GetBuckets() map[string]*TokenBucket {
-	return l.buckets
 }
