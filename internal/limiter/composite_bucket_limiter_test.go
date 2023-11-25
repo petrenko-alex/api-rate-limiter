@@ -226,6 +226,27 @@ func TestCompositeBucketLimiter_Error(t *testing.T) {
 	})
 }
 
+func TestCompositeBucketLimiter_GetRequestsAllowed(t *testing.T) {
+	bucketSize := 3
+	types := []limiter.LimitType{
+		limiter.LoginLimit,
+		limiter.IPLimit,
+		limiter.PasswordLimit,
+	}
+	refillRate := limiter.NewRefillRate(bucketSize, time.Second*1)
+	limitStorage := getMockLimitStorage(t, types, []int{bucketSize, bucketSize, bucketSize - 1})
+	compositeLimiter := limiter.NewCompositeBucketLimiter(limitStorage, refillRate)
+
+	allowed, err := compositeLimiter.GetRequestsAllowed(limiter.UserIdentityDto{
+		types[0].String(): "lucky",
+		types[1].String(): "192.168.1.1",
+		types[2].String(): "555",
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, bucketSize-1, allowed)
+}
+
 func getMockLimitStorage(t *testing.T, types []limiter.LimitType, values []int) *limitermocks.MockILimitStorage {
 	t.Helper()
 
