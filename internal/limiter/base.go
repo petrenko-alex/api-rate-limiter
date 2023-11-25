@@ -50,5 +50,5 @@ type ITokenBucketLimitService interface {
 
 // ITokenBucketGB сервис подчистки устаревших бакетов.
 type ITokenBucketGB interface {
-	Sweep()
+	Sweep() error
 }

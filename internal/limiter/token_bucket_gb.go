@@ -18,10 +18,10 @@ func NewTokenBucketGB(tokenBucketLimiter ITokenBucketLimitService, tokenBucketTT
 	}
 }
 
-func (gb *TokenBucketGB) Sweep() {
+func (gb *TokenBucketGB) Sweep() error {
 	buckets := gb.tokenBucketLimiter.GetBuckets()
 	if len(buckets) == 0 {
-		return
+		return nil
 	}
 
 	bucketsToDelete := make([]string, 0)
@@ -36,10 +36,15 @@ func (gb *TokenBucketGB) Sweep() {
 	}
 
 	if len(bucketsToDelete) == 0 {
-		return
+		return nil
 	}
 
 	for _, bucketKey := range bucketsToDelete {
-		gb.tokenBucketLimiter.SweepBucket(bucketKey)
+		err := gb.tokenBucketLimiter.SweepBucket(bucketKey)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }

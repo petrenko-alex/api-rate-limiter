@@ -95,10 +95,15 @@ func (a *App) RunGB(ctx context.Context) {
 			select {
 			case <-ctx.Done():
 				a.logger.Info("GB Finishing...") // todo: remove
+
 				return
 			case <-time.After(time.Second * 30): // todo: from config
 				a.logger.Info("GB Sweep") // todo: remove
-				a.limiterGB.Sweep()
+
+				err := a.limiterGB.Sweep()
+				if err != nil {
+					a.logger.Error("GB error", "error", err)
+				}
 			}
 		}
 	}()
