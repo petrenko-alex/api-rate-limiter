@@ -44,8 +44,7 @@ func New(ctx context.Context, config *config.Config, logger *slog.Logger) (*App,
 	limiterService := limiter.NewLoginFormLimiter(ruleService, bucketLimiter)
 
 	// Init Limiter Garbage Collector
-	tokenBucketTTL := time.Second * 10 // todo: from config
-	limiterGB := limiter.NewTokenBucketGB(bucketLimiter, tokenBucketTTL)
+	limiterGB := limiter.NewTokenBucketGB(bucketLimiter, config.App.GarbageCollector.TTL)
 
 	return &App{
 		ruleService:    ruleService,
@@ -56,6 +55,10 @@ func New(ctx context.Context, config *config.Config, logger *slog.Logger) (*App,
 		ctx:    ctx,
 		config: config,
 	}, nil
+}
+
+func (a *App) RunBackground() {
+	a.RunGB()
 }
 
 func (a *App) LimitCheck(ip, login, password string) (bool, error) {
@@ -89,15 +92,20 @@ func (a *App) BlackListDelete(ip string) error {
 	return a.ruleService.BlackListDelete(ip)
 }
 
-func (a *App) RunGB(ctx context.Context) {
+func (a *App) RunGB() {
+	if !a.config.App.GarbageCollector.Enabled {
+		return
+	}
+
+	a.logger.Info("Starting Garbage Collector...")
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-a.ctx.Done():
 				a.logger.Info("GB Finishing...") // todo: remove
 
 				return
-			case <-time.After(time.Second * 30): // todo: from config
+			case <-time.After(a.config.App.GarbageCollector.Interval):
 				a.logger.Info("GB Sweep") // todo: remove
 
 				err := a.limiterGB.Sweep()

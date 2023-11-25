@@ -11,3 +11,7 @@ app:
   refillRate:
     count: 3
     time: 30s
+  garbageCollector:
+    enabled: true
+    ttl: 600s
+    interval 60s

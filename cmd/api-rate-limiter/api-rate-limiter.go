@@ -63,8 +63,8 @@ func run() int {
 		return 1
 	}
 
-	logg.Info("Starting Garbage Collector")
-	application.RunGB(ctx)
+	logg.Info("Starting application background service...")
+	application.RunBackground()
 
 	srv := server.NewServer(
 		server.Options{

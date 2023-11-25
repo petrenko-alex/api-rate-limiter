@@ -1,6 +1,8 @@
 package app
 
 type IApp interface {
+	RunBackground()
+
 	LimitCheck(ip, login, password string) (bool, error)
 	LimitReset(ip, login string) error
 

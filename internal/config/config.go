@@ -42,6 +42,12 @@ type Config struct {
 			Count int
 			Time  time.Duration
 		} `yaml:"refillRate"`
+
+		GarbageCollector struct {
+			Enabled  bool
+			TTL      time.Duration
+			Interval time.Duration
+		} `yaml:"garbageCollector"`
 	}
 }
 
