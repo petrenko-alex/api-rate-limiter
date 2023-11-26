@@ -6,7 +6,7 @@ generate:
 			api/RateLimiter.proto
 
 run:
-	docker-compose -f "./deployments/docker-compose.yml" up
+	docker-compose up
 
 build-migrations:
 	go build -v -o $(BIN_MIGRATE) ./cmd/migrations
