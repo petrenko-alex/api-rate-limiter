@@ -1,5 +1,4 @@
-FROM golang:1.21
-# todo: decrease size (two step file)
+FROM golang:1.21 as build
 
 WORKDIR /app
 
@@ -13,6 +12,12 @@ COPY . .
 
 RUN go build -o bin/limiter ./cmd/api-rate-limiter/
 
-CMD ["bin/limiter", "-config=./configs/config.yml"]
+FROM scratch
 
 EXPOSE 4242
+
+COPY --from=build /app/bin/limiter .
+COPY --from=build /app/configs/config.yml .
+
+CMD ["/limiter", "-config=./config.yml"]
+
