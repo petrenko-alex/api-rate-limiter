@@ -77,8 +77,8 @@ func (s RuleService) inList(ip string, listType RuleType) (bool, error) {
 		return false, getErr
 	}
 
-	parsedIp := net.ParseIP(ip)
-	if parsedIp == nil {
+	parsedIP := net.ParseIP(ip)
+	if parsedIP == nil {
 		return false, ErrInvalidInputIP
 	}
 
@@ -87,8 +87,8 @@ func (s RuleService) inList(ip string, listType RuleType) (bool, error) {
 	}
 
 	for _, rule := range *rules {
-		ruleParsedIp := net.ParseIP(rule.IP)
-		if ruleParsedIp != nil && parsedIp.Equal(ruleParsedIp) { // direct ip match
+		ruleParsedIP := net.ParseIP(rule.IP)
+		if ruleParsedIP != nil && parsedIP.Equal(ruleParsedIP) { // direct ip match
 			return true, nil
 		}
 
@@ -97,7 +97,7 @@ func (s RuleService) inList(ip string, listType RuleType) (bool, error) {
 			continue
 		}
 
-		if ipNet.Contains(parsedIp) { // subnet match
+		if ipNet.Contains(parsedIP) { // subnet match
 			return true, nil
 		}
 	}

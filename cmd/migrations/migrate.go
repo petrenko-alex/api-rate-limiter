@@ -39,7 +39,7 @@ func run() int {
 		return 1
 	}
 
-	cfg, configErr := config.New(context.Background(), configFile)
+	cfg, configErr := config.ForMigrator(context.Background(), configFile)
 	if configErr != nil {
 		log.Println("Error parsing config file: ", configErr)
 

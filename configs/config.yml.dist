@@ -7,3 +7,11 @@ db:
   migrationsDir: "./migrations/"
 logger:
   level: "info" # debug, info, warn, error
+app:
+  refillRate:
+    count: 3
+    time: 30s
+  garbageCollector:
+    enabled: true
+    ttl: 600s
+    interval 60s

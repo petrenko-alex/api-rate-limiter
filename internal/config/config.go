@@ -36,6 +36,19 @@ type Config struct {
 	Logger struct {
 		Level slog.Level
 	}
+
+	App struct {
+		RefillRate struct {
+			Count int
+			Time  time.Duration
+		} `yaml:"refillRate"`
+
+		GarbageCollector struct {
+			Enabled  bool
+			TTL      time.Duration
+			Interval time.Duration
+		} `yaml:"garbageCollector"`
+	}
 }
 
 func (c Config) WithContext(parentCtx context.Context) context.Context {
@@ -43,15 +56,13 @@ func (c Config) WithContext(parentCtx context.Context) context.Context {
 }
 
 func New(ctx context.Context, configFile io.Reader) (*Config, error) {
-	config := &Config{}
-
-	yamlDecoder := yaml.NewDecoder(configFile)
-	if err := yamlDecoder.Decode(&config); err != nil {
+	config, err := ForMigrator(ctx, configFile)
+	if err != nil {
 		return nil, err
 	}
 
 	limitStorage := limiter.NewLimitStorage(config.DB.DSN)
-	if err := limitStorage.Connect(ctx); err != nil {
+	if err = limitStorage.Connect(ctx); err != nil {
 		return nil, err
 	}
 
@@ -74,6 +85,17 @@ func New(ctx context.Context, configFile io.Reader) (*Config, error) {
 
 	if config.Limits.Login == nil || config.Limits.Password == nil || config.Limits.IP == nil {
 		return nil, ErrLimitsNotFound
+	}
+
+	return config, nil
+}
+
+func ForMigrator(_ context.Context, configFile io.Reader) (*Config, error) {
+	config := &Config{}
+
+	yamlDecoder := yaml.NewDecoder(configFile)
+	if err := yamlDecoder.Decode(&config); err != nil {
+		return nil, err
 	}
 
 	return config, nil

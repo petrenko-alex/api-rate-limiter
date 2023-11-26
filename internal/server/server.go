@@ -6,7 +6,7 @@ import (
 	"net"
 
 	proto "github.com/petrenko-alex/api-rate-limiter/api"
-	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
+	"github.com/petrenko-alex/api-rate-limiter/internal/app"
 	"github.com/petrenko-alex/api-rate-limiter/internal/server/log"
 	"google.golang.org/grpc"
 )
@@ -19,7 +19,7 @@ type Server struct {
 	options Options
 }
 
-func NewServer(options Options, app ipnet.IRuleService, logger *slog.Logger) *Server {
+func NewServer(options Options, app app.IApp, logger *slog.Logger) *Server {
 	grpcServer := grpc.NewServer(
 		grpc.ConnectionTimeout(options.ConnectTimeout),
 		grpc.ChainUnaryInterceptor(
