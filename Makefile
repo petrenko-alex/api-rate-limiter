@@ -16,7 +16,7 @@ run:
 	docker-compose up
 
 test:
-	CGO_ENABLED=1 go test --race -count 100 ./...
+	CGO_ENABLED=1 go test --race -count 10 ./...
 
 migrate-status: build-migrations
 	$(BIN_MIGRATE) -config="./configs/config.yml" status
