@@ -4,7 +4,11 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Linting..."
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3.7.0
+        with:
+          version: v1.54.2
+
   test:
     runs-on: ubuntu-latest
     steps:
