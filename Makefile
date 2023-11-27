@@ -1,15 +1,22 @@
-BIN_MIGRATE := "./bin/migrate"
+BIN_APP := "./bin/limiter"
+BIN_MIGRATE := "./bin/limiter-migrator"
 
 generate:
 	protoc --go_out=. --go_opt=paths=source_relative \
 			--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 			api/RateLimiter.proto
 
+build:
+	go build -o $(BIN_APP) ./cmd/api-rate-limiter
+
+build-migrations:
+	go build -o $(BIN_MIGRATE) ./cmd/migrations
+
 run:
 	docker-compose up
 
-build-migrations:
-	go build -v -o $(BIN_MIGRATE) ./cmd/migrations
+test:
+	CGO_ENABLED=1 go test --race -count 100 ./...
 
 migrate-status: build-migrations
 	$(BIN_MIGRATE) -config="./configs/config.yml" status

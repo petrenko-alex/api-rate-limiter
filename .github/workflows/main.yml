@@ -15,4 +15,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Testing..."
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Unit test
+        run: make test
