@@ -3,7 +3,7 @@ server:
   port: 4242
   connectTimeout: 1s
 db:
-  dsn: "<paste your dsn>"
+  dsn: "postgres://main:main@db:5432/rate_limiter?sslmode=disable"
   migrationsDir: "./migrations/"
 logger:
   level: "info" # debug, info, warn, error
