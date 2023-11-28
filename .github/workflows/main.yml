@@ -30,3 +30,17 @@ jobs:
 
       - name: Unit test
         run: make test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v4
+        with:
+          go-version: '^1.21'
+
+      - name: Build bin
+        run: make build
