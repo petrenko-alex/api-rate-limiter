@@ -1,5 +1,9 @@
 name: main
-on: [pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -44,3 +48,8 @@ jobs:
 
       - name: Build bin
         run: make build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: limiter
+          path: bin/limiter
