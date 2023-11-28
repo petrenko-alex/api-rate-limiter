@@ -14,4 +14,4 @@ app:
   garbageCollector:
     enabled: true
     ttl: 600s
-    interval 60s
+    interval: 60s
