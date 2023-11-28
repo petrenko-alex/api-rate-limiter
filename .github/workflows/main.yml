@@ -1,0 +1,55 @@
+name: main
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v4
+        with:
+          go-version: '^1.21'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3.7.0
+        with:
+          version: v1.54.2
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v4
+        with:
+          go-version: '^1.21'
+
+      - name: Unit test
+        run: make test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v4
+        with:
+          go-version: '^1.21'
+
+      - name: Build bin
+        run: make build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: limiter
+          path: bin/limiter
