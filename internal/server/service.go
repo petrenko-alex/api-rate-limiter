@@ -7,19 +7,21 @@ import (
 	"log/slog"
 
 	proto "github.com/petrenko-alex/api-rate-limiter/api"
+	"github.com/petrenko-alex/api-rate-limiter/internal/app"
 	"github.com/petrenko-alex/api-rate-limiter/internal/ipnet"
+	"github.com/petrenko-alex/api-rate-limiter/internal/limiter"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Service struct {
 	proto.UnimplementedRateLimiterServer
-	app ipnet.IRuleService // todo: replace with real application
 
+	app    app.IApp
 	logger slog.Logger
 }
 
-func NewService(app ipnet.IRuleService, logger slog.Logger) *Service {
+func NewService(app app.IApp, logger slog.Logger) *Service {
 	return &Service{
 		logger: logger,
 		app:    app,
@@ -80,14 +82,31 @@ func (s Service) BlackListDelete(_ context.Context, req *proto.BlackListDeleteRe
 	return &proto.BlackListDeleteResponse{}, nil
 }
 
-func (s Service) BucketReset(_ context.Context, _ *proto.BucketResetRequest) (*proto.BucketResetResponse, error) {
-	s.logger.Info("BucketReset executing...")
+func (s Service) BucketReset(_ context.Context, req *proto.BucketResetRequest) (*proto.BucketResetResponse, error) {
+	err := s.app.LimitReset(req.Ip, req.Login)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("Failed resetting limits: %s", err))
+
+		code := codes.Unknown
+
+		return nil, status.Errorf(code, err.Error())
+	}
 
 	return &proto.BucketResetResponse{}, nil
 }
 
-func (s Service) LimitCheck(_ context.Context, _ *proto.LimitCheckRequest) (*proto.LimitCheckResponse, error) {
-	s.logger.Info("LimitCheck executing...")
+func (s Service) LimitCheck(_ context.Context, req *proto.LimitCheckRequest) (*proto.LimitCheckResponse, error) {
+	satisfies, err := s.app.LimitCheck(req.Ip, req.Login, req.Password)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("Failed checking limit: %s", err))
 
-	return &proto.LimitCheckResponse{}, nil
+		code := codes.Unknown
+		if errors.Is(err, limiter.ErrIncorrectIdentity) {
+			code = codes.InvalidArgument
+		}
+
+		return nil, status.Errorf(code, err.Error())
+	}
+
+	return &proto.LimitCheckResponse{Allowed: satisfies}, nil
 }
